@@ -7,6 +7,10 @@ This folder contains four independent beginner DOTS demos:
 3. `Demo03_FlockingAgents`: runs a simple flocking simulation.
 4. `Demo04_TowerDefense`: builds a small ECS tower defense simulation.
 
+It also includes a reusable template folder:
+
+5. `Templates/DemoTemplate`: a starter structure for creating new DOTS demos.
+
 ## Project Requirements
 
 The project manifest includes:
