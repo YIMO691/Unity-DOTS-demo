@@ -1,3 +1,4 @@
+# Unity generated
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -6,21 +7,42 @@
 [Ll]ogs/
 [Uu]serSettings/
 [Mm]emoryCaptures/
-.vs/
-.idea/
 Assets/SceneDependencyCache/
+
+# IDE
+.vs/
+.vscode/
+.idea/
 *.csproj
 *.sln
 *.user
 *.userprefs
-*.pidb
-*.booproj
-*.svd
+*.DotSettings.user
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Claude Code
+.claude/
+
+# Test artifacts
+*Results.xml
+*_log.txt
+
+# Build artifacts
+*.apk
+*.aab
+*.ipa
+*.exe
 *.pdb
 *.mdb
 *.opendb
+*.pidb
+*.booproj
+*.svd
 *.VC.db
-.DS_Store
-.claude/
-*Results.xml
-*_log.txt
+
+# Package tarballs (optional exports)
+*.unitypackage
