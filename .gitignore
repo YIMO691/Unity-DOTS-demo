@@ -24,8 +24,9 @@ Assets/SceneDependencyCache/
 Thumbs.db
 Desktop.ini
 
-# Claude Code
+# Claude Code / AI agent files
 .claude/
+.hermes.md
 
 # Test artifacts
 *Results.xml

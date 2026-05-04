@@ -1,25 +1,44 @@
-name: Unity Tests
+name: Unity Tests (Manual)
+
+# Unity CI requires a license. This workflow runs on manual dispatch only.
+# To enable automated CI on push/PR, set UNITY_LICENSE (or UNITY_EMAIL +
+# UNITY_PASSWORD + UNITY_SERIAL) in repository secrets, then uncomment
+# the push/pull_request triggers below.
+#
+# License setup: https://game.ci/docs/github/activation
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
+  workflow_dispatch:
 
 jobs:
-  test:
+  editmode:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           projectPath: .
-          testMode: EditMode
+          testMode: editmode
+
+  playmode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           projectPath: .
-          testMode: PlayMode
+          testMode: playmode

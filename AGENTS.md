@@ -93,7 +93,7 @@ EditMode:
 ```powershell
 & "C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Unity.exe" `
   -batchmode `
-  -projectPath "C:\Users\Administrator\Desktop\UnityLearning\Unity DOTS demo" `
+  -projectPath "<project-path>" `
   -runTests `
   -testPlatform EditMode `
   -testResults "Logs\EditModeResults.xml" `
@@ -106,7 +106,7 @@ PlayMode:
 ```powershell
 & "C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Unity.exe" `
   -batchmode `
-  -projectPath "C:\Users\Administrator\Desktop\UnityLearning\Unity DOTS demo" `
+  -projectPath "<project-path>" `
   -runTests `
   -testPlatform PlayMode `
   -testResults "Logs\PlayModeResults.xml" `

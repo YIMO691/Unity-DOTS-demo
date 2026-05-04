@@ -131,7 +131,13 @@ PlayMode smoke tests load each demo scene and run for 300 frames. SubScene bakin
 
 ### GitHub Actions
 
-The workflow at `.github/workflows/test.yml` runs EditMode and PlayMode tests with GameCI. Configure `UNITY_LICENSE` in repository secrets before enabling CI.
+The workflow at `.github/workflows/test.yml` uses GameCI. CI is configured as
+**manual dispatch** by default (no failing CI badge on push).
+
+To enable automated CI on push/PR:
+1. Set `UNITY_LICENSE` (or `UNITY_EMAIL` + `UNITY_PASSWORD` + `UNITY_SERIAL`) in Settings > Secrets and variables > Actions.
+2. Uncomment the `push` and `pull_request` triggers in `.github/workflows/test.yml`.
+3. See [GameCI docs](https://game.ci/docs/github/activation) for license setup.
 
 ## Roadmap
 
