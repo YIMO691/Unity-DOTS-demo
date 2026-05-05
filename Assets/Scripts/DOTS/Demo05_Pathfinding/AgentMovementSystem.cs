@@ -42,8 +42,8 @@ namespace UnityDotsDemo.Demo05
         {
             public float DeltaTime;
             public FlowFieldGrid Grid;
-            [ReadOnly] public BufferLookup<FlowFieldCell> FlowFieldLookup;
-            [ReadOnly] public Entity GridEntity;
+            public BufferLookup<FlowFieldCell> FlowFieldLookup;
+            public Entity GridEntity;
 
             private void Execute(ref LocalTransform transform, in MoveSpeed speed)
             {
