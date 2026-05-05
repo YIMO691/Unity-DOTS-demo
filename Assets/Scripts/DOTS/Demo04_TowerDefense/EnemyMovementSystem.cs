@@ -6,7 +6,7 @@ using Unity.Transforms;
 
 namespace UnityDotsDemo.Demo04
 {
-    [UpdateAfter(typeof(WaveSpawnerSystem))]
+    [UpdateAfter(typeof(EnemySpawnSystem))]
     public partial struct EnemyMovementSystem : ISystem
     {
         public void OnUpdate(ref SystemState state)

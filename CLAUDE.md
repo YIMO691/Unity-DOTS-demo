@@ -85,7 +85,7 @@ Authoring GameObjects live inside SubScenes and bake into ECS entities at edit t
 
 ### Demo04 — Tower Defense
 - Mandatory system execution order (systems must run in this sequence):
-  `WaveSpawner → TowerTargeting → ProjectileMovement → Damage → Cleanup → BaseHealth → GameState`
+  `TowerSpawn → WaveProgression → EnemySpawn → EnemyMovement → TowerTargeting → ProjectileMovement → Damage → Cleanup → BaseHealth → GameState`
 - Uses `IBufferElementData` for `Waypoint` paths and `TowerSpawnPoint` positions, and `DamageEvent` as a buffer for damage accumulation.
 - `WaveSpawnerSystem` spawns towers once (`TowersSpawned` byte flag), then spawns enemy waves. It reads `WaveDefinition` buffers for per-wave enemy type counts and stats.
 - `GameStateComponent` holds a `GamePhase` enum (Playing/Victory/Defeat). The `GameStateSystem` checks win (all waves cleared, no enemies alive) and loss (base health ≤ 0) conditions.

@@ -93,6 +93,11 @@ namespace UnityDotsDemo.Demo04
         public float Value;
     }
 
+    public struct SpawnPoolElement : IBufferElementData
+    {
+        public Entity Value;
+    }
+
     public struct PooledEnemy : IComponentData
     {
     }

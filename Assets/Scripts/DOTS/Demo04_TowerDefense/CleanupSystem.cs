@@ -42,10 +42,10 @@ namespace UnityDotsDemo.Demo04
                         gameState.KillCount++;
                     }
 
-                    WaveSpawnerSystem.ReturnToPool(ecb, enemyEntity);
+                    EnemyPoolUtility.ReturnToPool(ecb, enemyEntity);
                     if (hasSpawner)
                     {
-                        ecb.AppendToBuffer(spawnerEntity, enemyEntity);
+                        ecb.AppendToBuffer(spawnerEntity, new SpawnPoolElement { Value = enemyEntity });
                     }
                 }
             }

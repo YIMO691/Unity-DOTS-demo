@@ -121,7 +121,7 @@ namespace UnityDotsDemo.Demo04
                     towerPoints.Add(new TowerSpawnPoint { Position = new float3(8f, 0f, 0.5f) });
                 }
 
-                AddBuffer<Entity>(spawnerEntity);
+                AddBuffer<SpawnPoolElement>(spawnerEntity);
             }
 
             private static void AddDefaultWaves(
