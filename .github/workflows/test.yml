@@ -1,16 +1,17 @@
 name: Unity Tests (Manual)
 
-# Unity CI requires a license. Set UNITY_LICENSE (or UNITY_EMAIL +
-# UNITY_PASSWORD + UNITY_SERIAL) in Settings > Secrets and variables > Actions.
-# Without a valid license, CI jobs will fail on push/PR.
-#
+# Unity CI requires a license. This workflow uses manual dispatch by default.
+# To enable automatic CI on push/PR:
+#   1. Set UNITY_LICENSE (or UNITY_EMAIL + UNITY_PASSWORD + UNITY_SERIAL) in
+#      Settings > Secrets and variables > Actions
+#   2. Uncomment the `push` and `pull_request` triggers below
 # License setup: https://game.ci/docs/github/activation
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
   workflow_dispatch:
 
 jobs:
