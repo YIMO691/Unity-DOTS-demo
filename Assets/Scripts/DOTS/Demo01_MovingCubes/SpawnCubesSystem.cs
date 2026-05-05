@@ -1,3 +1,4 @@
+using DOTSDemo.Shared;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -18,7 +19,7 @@ namespace UnityDotsDemo.Demo01
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
+            using var helper = new SpawnerHelper(state.EntityManager, Allocator.Temp);
 
             foreach (var (configRef, spawnerEntity) in
                      SystemAPI.Query<RefRO<CubeSpawnerConfig>>().WithEntityAccess())
@@ -35,7 +36,7 @@ namespace UnityDotsDemo.Demo01
                 {
                     int x = i % columns;
                     int z = i / columns;
-                    Entity cube = ecb.Instantiate(config.CubePrefab);
+                    Entity cube = helper.Ecb.Instantiate(config.CubePrefab);
                     float angle = random.NextFloat(0f, math.PI * 2f);
                     float speed = random.NextFloat(config.MinSpeed, config.MaxSpeed);
                     float3 direction = new float3(math.cos(angle), 0f, math.sin(angle));
@@ -44,19 +45,16 @@ namespace UnityDotsDemo.Demo01
                         0f,
                         startZ + z * config.Spacing);
 
-                    ecb.SetComponent(
+                    helper.Ecb.SetComponent(
                         cube,
                         LocalTransform.FromPositionRotationScale(position, quaternion.identity, 1f));
-                    ecb.AddComponent(cube, new MoveSpeed { Value = speed });
-                    ecb.AddComponent(cube, new MoveDirection { Value = direction });
-                    ecb.AddComponent(cube, new WrapArea { HalfExtents = config.AreaHalfSize });
+                    helper.Ecb.AddComponent(cube, new MoveSpeed { Value = speed });
+                    helper.Ecb.AddComponent(cube, new Velocity { Value = direction });
+                    helper.Ecb.AddComponent(cube, new WrapArea { HalfExtents = config.AreaHalfSize });
                 }
 
-                ecb.DestroyEntity(spawnerEntity);
+                helper.DestroySpawner(spawnerEntity);
             }
-
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
         }
     }
 }

@@ -1,3 +1,4 @@
+using DOTSDemo.Shared;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -20,7 +21,7 @@ namespace UnityDotsDemo.Demo03
         {
             private void Execute(
                 ref LocalTransform transform,
-                ref BoidVelocity velocity,
+                ref Velocity velocity,
                 in SimulationBounds bounds)
             {
                 float3 min = bounds.Center - bounds.Extents;

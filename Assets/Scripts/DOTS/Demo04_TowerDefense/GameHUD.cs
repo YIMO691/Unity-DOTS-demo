@@ -1,3 +1,4 @@
+using DOTSDemo.Shared;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
@@ -120,23 +121,10 @@ namespace UnityDotsDemo.Demo04
                 return;
             }
 
-            _panelStyle = new GUIStyle(GUI.skin.box)
-            {
-                alignment = TextAnchor.UpperLeft,
-                padding = new RectOffset(12, 12, 10, 10)
-            };
-            _bodyStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 14,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.UpperLeft
-            };
-            _bannerStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 28,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter
-            };
+            _panelStyle = GUIStyleHelper.LightPanel();
+            _bodyStyle = GUIStyleHelper.TitleLabel(14);
+            _bannerStyle = GUIStyleHelper.TitleLabel(28);
+            _bannerStyle.alignment = TextAnchor.MiddleCenter;
         }
     }
 }

@@ -1,19 +1,11 @@
 using Unity.Entities;
-using Unity.Mathematics;
 
-namespace DOTS.Templates.DemoTemplate
+namespace UnityDotsDemo.Template
 {
     public struct TemplateTag : IComponentData
     {
     }
 
-    public struct TemplateMoveSpeed : IComponentData
-    {
-        public float Value;
-    }
-
-    public struct TemplateDirection : IComponentData
-    {
-        public float3 Value;
-    }
+    // Use DOTSDemo.Shared.MoveSpeed and DOTSDemo.Shared.Velocity
+    // instead of defining duplicate movement components.
 }

@@ -1,3 +1,4 @@
+using DOTSDemo.Shared;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -14,7 +15,7 @@ namespace UnityDotsDemo.Demo03
 
         public void OnUpdate(ref SystemState state)
         {
-            EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
+            using var helper = new SpawnerHelper(state.EntityManager, Allocator.Temp);
 
             foreach (var (configRef, spawnerEntity) in
                      SystemAPI.Query<RefRO<BoidSpawnerConfig>>().WithEntityAccess())
@@ -24,7 +25,7 @@ namespace UnityDotsDemo.Demo03
 
                 for (int i = 0; i < config.Count; i++)
                 {
-                    Entity boid = ecb.Instantiate(config.BoidPrefab);
+                    Entity boid = helper.Ecb.Instantiate(config.BoidPrefab);
                     float3 position = config.Center + new float3(
                         random.NextFloat(-config.BoundsExtents.x, config.BoundsExtents.x),
                         random.NextFloat(-config.BoundsExtents.y, config.BoundsExtents.y),
@@ -32,25 +33,22 @@ namespace UnityDotsDemo.Demo03
                     float3 velocity = random.NextFloat3Direction() *
                                       random.NextFloat(config.Settings.MinSpeed, config.Settings.MaxSpeed);
 
-                    ecb.SetComponent(boid, LocalTransform.FromPositionRotationScale(
+                    helper.Ecb.SetComponent(boid, LocalTransform.FromPositionRotationScale(
                         position,
                         quaternion.LookRotationSafe(velocity, math.up()),
                         1f));
-                    ecb.AddComponent<BoidTag>(boid);
-                    ecb.AddComponent(boid, new BoidVelocity { Value = velocity });
-                    ecb.AddComponent(boid, config.Settings);
-                    ecb.AddComponent(boid, new SimulationBounds
+                    helper.Ecb.AddComponent<BoidTag>(boid);
+                    helper.Ecb.AddComponent(boid, new Velocity { Value = velocity });
+                    helper.Ecb.AddComponent(boid, config.Settings);
+                    helper.Ecb.AddComponent(boid, new SimulationBounds
                     {
                         Center = config.Center,
                         Extents = config.BoundsExtents
                     });
                 }
 
-                ecb.DestroyEntity(spawnerEntity);
+                helper.DestroySpawner(spawnerEntity);
             }
-
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
         }
     }
 }

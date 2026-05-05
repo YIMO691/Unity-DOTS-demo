@@ -155,28 +155,13 @@ namespace DOTSDemo.Shared
                 return;
             }
 
-            _panelStyle = new GUIStyle(GUI.skin.box)
-            {
-                normal = { background = MakeTexture(2, 2, new Color(0.08f, 0.08f, 0.1f, 0.86f)) },
-                padding = new RectOffset(12, 12, 10, 10)
-            };
+            _panelStyle = GUIStyleHelper.DarkPanel();
 
-            _titleStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 34,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                wordWrap = false,
-                normal = { textColor = Color.white }
-            };
+            _titleStyle = GUIStyleHelper.TitleLabel(34);
+            _titleStyle.alignment = TextAnchor.MiddleCenter;
 
-            _subtitleStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 14,
-                alignment = TextAnchor.MiddleCenter,
-                wordWrap = false,
-                normal = { textColor = new Color(0.7f, 0.72f, 0.78f) }
-            };
+            _subtitleStyle = GUIStyleHelper.HintLabel(14);
+            _subtitleStyle.alignment = TextAnchor.MiddleCenter;
 
             _buttonStyle = new GUIStyle(GUI.skin.button)
             {
@@ -188,45 +173,21 @@ namespace DOTSDemo.Shared
             {
                 normal =
                 {
-                    background = MakeTexture(2, 2, new Color(0.25f, 0.45f, 0.75f, 0.85f)),
+                    background = GUIStyleHelper.MakeTexture(2, 2, new Color(0.25f, 0.45f, 0.75f, 0.85f)),
                     textColor = Color.white
                 },
                 hover =
                 {
-                    background = MakeTexture(2, 2, new Color(0.3f, 0.55f, 0.85f, 0.95f)),
+                    background = GUIStyleHelper.MakeTexture(2, 2, new Color(0.3f, 0.55f, 0.85f, 0.95f)),
                     textColor = Color.white
                 }
             };
 
-            _demoTitleStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 15,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = Color.white }
-            };
+            _demoTitleStyle = GUIStyleHelper.TitleLabel(15);
+            _demoTitleStyle.alignment = TextAnchor.MiddleLeft;
 
-            _bodyStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 12,
-                alignment = TextAnchor.MiddleLeft,
-                wordWrap = true,
-                normal = { textColor = new Color(0.78f, 0.8f, 0.86f) }
-            };
-        }
-
-        private static Texture2D MakeTexture(int width, int height, Color color)
-        {
-            Color[] pixels = new Color[width * height];
-            for (int i = 0; i < pixels.Length; i++)
-            {
-                pixels[i] = color;
-            }
-
-            Texture2D texture = new Texture2D(width, height);
-            texture.SetPixels(pixels);
-            texture.Apply();
-            return texture;
+            _bodyStyle = GUIStyleHelper.BodyLabel(12);
+            _bodyStyle.alignment = TextAnchor.MiddleLeft;
         }
     }
 }

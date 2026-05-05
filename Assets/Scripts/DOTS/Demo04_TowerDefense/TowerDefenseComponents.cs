@@ -20,11 +20,6 @@ namespace UnityDotsDemo.Demo04
         public float Value;
     }
 
-    public struct MoveSpeed : IComponentData
-    {
-        public float Value;
-    }
-
     public struct WaypointIndex : IComponentData
     {
         public int Value;

@@ -1,3 +1,4 @@
+using DOTSDemo.Shared;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -25,10 +26,10 @@ namespace UnityDotsDemo.Demo01
             private void Execute(
                 ref LocalTransform transform,
                 in MoveSpeed speed,
-                in MoveDirection direction,
+                in Velocity velocity,
                 in WrapArea wrapArea)
             {
-                float3 position = transform.Position + direction.Value * speed.Value * DeltaTime;
+                float3 position = transform.Position + velocity.Value * speed.Value * DeltaTime;
                 float2 halfExtents = wrapArea.HalfExtents;
 
                 if (position.x > halfExtents.x)

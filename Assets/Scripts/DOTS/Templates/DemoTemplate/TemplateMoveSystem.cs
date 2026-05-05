@@ -1,8 +1,9 @@
+using DOTSDemo.Shared;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace DOTS.Templates.DemoTemplate
+namespace UnityDotsDemo.Template
 {
     [BurstCompile]
     public partial struct TemplateMoveSystem : ISystem
@@ -12,10 +13,11 @@ namespace DOTS.Templates.DemoTemplate
         {
             float deltaTime = SystemAPI.Time.DeltaTime;
 
-            foreach (var (transform, speed, direction) in
-                     SystemAPI.Query<RefRW<LocalTransform>, RefRO<TemplateMoveSpeed>, RefRO<TemplateDirection>>())
+            foreach (var (transform, speed, velocity) in
+                     SystemAPI.Query<RefRW<LocalTransform>, RefRO<MoveSpeed>, RefRO<Velocity>>()
+                         .WithAll<TemplateTag>())
             {
-                transform.ValueRW.Position += direction.ValueRO.Value * speed.ValueRO.Value * deltaTime;
+                transform.ValueRW.Position += velocity.ValueRO.Value * speed.ValueRO.Value * deltaTime;
             }
         }
     }

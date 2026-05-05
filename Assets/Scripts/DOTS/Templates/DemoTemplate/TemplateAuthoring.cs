@@ -1,8 +1,9 @@
+using DOTSDemo.Shared;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace DOTS.Templates.DemoTemplate
+namespace UnityDotsDemo.Template
 {
     public class TemplateAuthoring : MonoBehaviour
     {
@@ -15,8 +16,8 @@ namespace DOTS.Templates.DemoTemplate
             {
                 Entity entity = GetEntity(TransformUsageFlags.Dynamic);
                 AddComponent<TemplateTag>(entity);
-                AddComponent(entity, new TemplateMoveSpeed { Value = authoring.moveSpeed });
-                AddComponent(entity, new TemplateDirection { Value = (float3)authoring.direction });
+                AddComponent(entity, new MoveSpeed { Value = authoring.moveSpeed });
+                AddComponent(entity, new Velocity { Value = (float3)authoring.direction });
             }
         }
     }

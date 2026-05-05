@@ -1,3 +1,4 @@
+using DOTSDemo.Shared;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -16,7 +17,7 @@ namespace UnityDotsDemo.Demo03
         public void OnCreate(ref SystemState state)
         {
             _boidQuery = SystemAPI.QueryBuilder()
-                .WithAll<BoidTag, LocalTransform, BoidVelocity, BoidSettings, SimulationBounds>()
+                .WithAll<BoidTag, LocalTransform, Velocity, BoidSettings, SimulationBounds>()
                 .Build();
             _hashMap = new NativeParallelMultiHashMap<int2, int>(1024, Allocator.Persistent);
         }
@@ -68,7 +69,7 @@ namespace UnityDotsDemo.Demo03
             _hashMap.Clear();
 
             NativeArray<LocalTransform> positions = _boidQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
-            NativeArray<BoidVelocity> velocities = _boidQuery.ToComponentDataArray<BoidVelocity>(Allocator.TempJob);
+            NativeArray<Velocity> velocities = _boidQuery.ToComponentDataArray<Velocity>(Allocator.TempJob);
             float fallbackCellSize = 4f;
             foreach (RefRO<BoidSettings> settingsRef in SystemAPI.Query<RefRO<BoidSettings>>().WithAll<BoidTag>())
             {
@@ -127,13 +128,13 @@ namespace UnityDotsDemo.Demo03
             public float DeltaTime;
             [ReadOnly] public NativeParallelMultiHashMap<int2, int> HashMap;
             [ReadOnly] public NativeArray<LocalTransform> Positions;
-            [ReadOnly] public NativeArray<BoidVelocity> Velocities;
+            [ReadOnly] public NativeArray<Velocity> Velocities;
             public float CellSize;
 
             private void Execute(
                 [EntityIndexInQuery] int entityIndex,
                 ref LocalTransform transform,
-                ref BoidVelocity velocity,
+                ref Velocity velocity,
                 in BoidSettings settings,
                 in SimulationBounds bounds)
             {

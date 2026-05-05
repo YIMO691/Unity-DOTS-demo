@@ -7,11 +7,6 @@ namespace UnityDotsDemo.Demo03
     {
     }
 
-    public struct BoidVelocity : IComponentData
-    {
-        public float3 Value;
-    }
-
     public struct BoidSettings : IComponentData
     {
         public float MinSpeed;

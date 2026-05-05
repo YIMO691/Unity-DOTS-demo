@@ -1,3 +1,4 @@
+using DOTSDemo.Shared;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -15,7 +16,7 @@ namespace UnityDotsDemo.Demo02
 
         public void OnUpdate(ref SystemState state)
         {
-            EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
+            using var helper = new SpawnerHelper(state.EntityManager, Allocator.Temp);
 
             foreach (var (configRef, spawnerEntity) in
                      SystemAPI.Query<RefRO<BallSpawnerConfig>>().WithEntityAccess())
@@ -26,15 +27,15 @@ namespace UnityDotsDemo.Demo02
 
                 for (int i = 0; i < config.Count; i++)
                 {
-                    Entity ball = ecb.Instantiate(config.BallPrefab);
+                    Entity ball = helper.Ecb.Instantiate(config.BallPrefab);
                     float3 offset = new float3(
                         random.NextFloat(-halfSize.x, halfSize.x),
                         random.NextFloat(-halfSize.y, halfSize.y),
                         random.NextFloat(-halfSize.z, halfSize.z));
                     float3 position = config.SpawnCenter + offset;
 
-                    ecb.SetComponent(ball, LocalTransform.FromPositionRotationScale(position, quaternion.identity, 1f));
-                    ecb.SetComponent(ball, new PhysicsVelocity
+                    helper.Ecb.SetComponent(ball, LocalTransform.FromPositionRotationScale(position, quaternion.identity, 1f));
+                    helper.Ecb.SetComponent(ball, new PhysicsVelocity
                     {
                         Linear = new float3(
                             random.NextFloat(-1.5f, 1.5f),
@@ -42,9 +43,9 @@ namespace UnityDotsDemo.Demo02
                             random.NextFloat(-1.5f, 1.5f)),
                         Angular = random.NextFloat3Direction() * random.NextFloat(0.5f, 3f)
                     });
-                    ecb.AddComponent<BallTag>(ball);
-                    ecb.AddComponent(ball, new ResetHeight { Value = config.ResetY });
-                    ecb.AddComponent(ball, new SpawnArea
+                    helper.Ecb.AddComponent<BallTag>(ball);
+                    helper.Ecb.AddComponent(ball, new ResetHeight { Value = config.ResetY });
+                    helper.Ecb.AddComponent(ball, new SpawnArea
                     {
                         Center = config.SpawnCenter,
                         Size = config.SpawnSize,
@@ -52,11 +53,8 @@ namespace UnityDotsDemo.Demo02
                     });
                 }
 
-                ecb.DestroyEntity(spawnerEntity);
+                helper.DestroySpawner(spawnerEntity);
             }
-
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
         }
     }
 }

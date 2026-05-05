@@ -1,3 +1,4 @@
+using DOTSDemo.Shared;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -15,7 +16,7 @@ namespace UnityDotsDemo.Demo03
         public void OnCreate(ref SystemState state)
         {
             _boidQuery = SystemAPI.QueryBuilder()
-                .WithAll<BoidTag, LocalTransform, BoidVelocity, BoidSettings, SimulationBounds>()
+                .WithAll<BoidTag, LocalTransform, Velocity, BoidSettings, SimulationBounds>()
                 .Build();
         }
 
@@ -39,7 +40,7 @@ namespace UnityDotsDemo.Demo03
             }
 
             NativeArray<LocalTransform> positions = _boidQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
-            NativeArray<BoidVelocity> velocities = _boidQuery.ToComponentDataArray<BoidVelocity>(Allocator.TempJob);
+            NativeArray<Velocity> velocities = _boidQuery.ToComponentDataArray<Velocity>(Allocator.TempJob);
 
             var job = new BoidMoveJob
             {
@@ -61,12 +62,12 @@ namespace UnityDotsDemo.Demo03
             public float DeltaTime;
 
             [ReadOnly] public NativeArray<LocalTransform> Positions;
-            [ReadOnly] public NativeArray<BoidVelocity> Velocities;
+            [ReadOnly] public NativeArray<Velocity> Velocities;
 
             private void Execute(
                 [EntityIndexInQuery] int entityIndex,
                 ref LocalTransform transform,
-                ref BoidVelocity velocity,
+                ref Velocity velocity,
                 in BoidSettings settings,
                 in SimulationBounds bounds)
             {

@@ -142,34 +142,10 @@ namespace DOTSDemo.Shared
                 return;
             }
 
-            _panelStyle = new GUIStyle(GUI.skin.box)
-            {
-                alignment = TextAnchor.UpperLeft,
-                padding = new RectOffset(12, 12, 10, 10)
-            };
-
-            _titleStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 20,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.UpperLeft,
-                wordWrap = false
-            };
-
-            _bodyStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 13,
-                alignment = TextAnchor.UpperLeft,
-                wordWrap = true
-            };
-
-            _hintStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 13,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                wordWrap = false
-            };
+            _panelStyle = GUIStyleHelper.LightPanel();
+            _titleStyle = GUIStyleHelper.TitleLabel(20);
+            _bodyStyle = GUIStyleHelper.BodyLabel(13);
+            _hintStyle = GUIStyleHelper.HintLabel(13);
         }
 
         private void RefreshStaticContent(bool force)
