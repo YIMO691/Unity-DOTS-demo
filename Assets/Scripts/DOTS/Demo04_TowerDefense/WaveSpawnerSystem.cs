@@ -8,6 +8,8 @@ namespace UnityDotsDemo.Demo04
 {
     public partial struct WaveSpawnerSystem : ISystem
     {
+        private const int PoolGrowSize = 20;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<WaveSpawnerConfig>();
@@ -26,8 +28,9 @@ namespace UnityDotsDemo.Demo04
 
             EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
 
-            foreach (var (configRef, waveStateRef, spawnerEntity) in
-                     SystemAPI.Query<RefRO<WaveSpawnerConfig>, RefRW<WaveSpawnerState>>().WithEntityAccess())
+            foreach (var (configRef, waveStateRef, pool, spawnerEntity) in
+                     SystemAPI.Query<RefRO<WaveSpawnerConfig>, RefRW<WaveSpawnerState>, DynamicBuffer<Entity>>()
+                         .WithEntityAccess())
             {
                 if (gameOver)
                 {
@@ -39,6 +42,8 @@ namespace UnityDotsDemo.Demo04
                 DynamicBuffer<TowerSpawnPoint> towerPoints = SystemAPI.GetBuffer<TowerSpawnPoint>(spawnerEntity);
                 DynamicBuffer<WaveDefinition> waves = SystemAPI.GetBuffer<WaveDefinition>(spawnerEntity);
                 int maxWaves = waves.Length > 0 ? waves.Length : config.MaxWaves;
+
+                GrowPoolIfNeeded(ref state, pool, config);
 
                 if (waveStateRef.ValueRO.TowersSpawned == 0)
                 {
@@ -80,21 +85,38 @@ namespace UnityDotsDemo.Demo04
                 }
 
                 GetEnemyStats(wave, waveStateRef.ValueRO.SpawnedInWave, out float enemyHealth, out float enemySpeed);
-                bool enemyPrefabHasLocalToWorld =
-                    state.EntityManager.HasComponent<LocalToWorld>(config.EnemyPrefab);
-                Entity enemy = ecb.Instantiate(config.EnemyPrefab);
+
+                if (pool.Length == 0)
+                {
+                    GrowPool(ref state, pool, config, PoolGrowSize);
+                    if (pool.Length == 0)
+                    {
+                        continue;
+                    }
+                }
+
+                int lastIndex = pool.Length - 1;
+                Entity enemy = pool[lastIndex];
+                pool.RemoveAt(lastIndex);
+
                 LocalTransform enemyTransform = LocalTransform.FromPositionRotationScale(
-                    waypoints[0].Position,
-                    quaternion.identity,
-                    1f);
-                ecb.SetComponent(enemy, enemyTransform);
-                SetOrAddLocalToWorld(ecb, enemy, enemyPrefabHasLocalToWorld, enemyTransform);
+                    waypoints[0].Position, quaternion.identity, 1f);
+                ecb.RemoveComponent<PooledEnemy>(enemy);
                 ecb.AddComponent<EnemyTag>(enemy);
-                ecb.AddComponent(enemy, new Health { Value = enemyHealth });
-                ecb.AddComponent(enemy, new EnemyMaxHealth { Value = enemyHealth });
-                ecb.AddComponent(enemy, new MoveSpeed { Value = enemySpeed });
-                ecb.AddComponent(enemy, new WaypointIndex { Value = math.min(1, waypoints.Length - 1) });
-                ecb.AddBuffer<DamageEvent>(enemy);
+                ecb.SetComponent(enemy, enemyTransform);
+                ecb.SetComponent(enemy, new Health { Value = enemyHealth });
+                ecb.SetComponent(enemy, new EnemyMaxHealth { Value = enemyHealth });
+                ecb.SetComponent(enemy, new MoveSpeed { Value = enemySpeed });
+                ecb.SetComponent(enemy, new WaypointIndex { Value = math.min(1, waypoints.Length - 1) });
+
+                if (state.EntityManager.HasBuffer<DamageEvent>(enemy))
+                {
+                    ecb.SetBuffer<DamageEvent>(enemy);
+                }
+                else
+                {
+                    ecb.AddBuffer<DamageEvent>(enemy);
+                }
 
                 waveStateRef.ValueRW.SpawnedInWave++;
                 waveStateRef.ValueRW.SpawnTimer = config.SpawnInterval;
@@ -107,6 +129,71 @@ namespace UnityDotsDemo.Demo04
 
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
+        }
+
+        private static void GrowPoolIfNeeded(
+            ref SystemState state,
+            DynamicBuffer<Entity> pool,
+            WaveSpawnerConfig config)
+        {
+            if (pool.Length < PoolGrowSize)
+            {
+                GrowPool(ref state, pool, config, PoolGrowSize);
+            }
+        }
+
+        private static void GrowPool(
+            ref SystemState state,
+            DynamicBuffer<Entity> pool,
+            WaveSpawnerConfig config,
+            int count)
+        {
+            bool prefabHasLocalToWorld =
+                state.EntityManager.HasComponent<LocalToWorld>(config.EnemyPrefab);
+
+            for (int i = 0; i < count; i++)
+            {
+                Entity enemy = state.EntityManager.Instantiate(config.EnemyPrefab);
+                state.EntityManager.AddComponent<PooledEnemy>(enemy);
+                state.EntityManager.AddComponent<MoveSpeed>(enemy);
+                state.EntityManager.AddComponent<WaypointIndex>(enemy);
+
+                if (!state.EntityManager.HasComponent<Health>(enemy))
+                {
+                    state.EntityManager.AddComponent<Health>(enemy);
+                }
+
+                if (!state.EntityManager.HasComponent<EnemyMaxHealth>(enemy))
+                {
+                    state.EntityManager.AddComponent<EnemyMaxHealth>(enemy);
+                }
+
+                if (!state.EntityManager.HasBuffer<DamageEvent>(enemy))
+                {
+                    state.EntityManager.AddBuffer<DamageEvent>(enemy);
+                }
+
+                state.EntityManager.SetComponentData(enemy,
+                    LocalTransform.FromPosition(0f, -100f, 0f));
+
+                if (prefabHasLocalToWorld)
+                {
+                    state.EntityManager.SetComponentData(enemy, new LocalToWorld
+                    {
+                        Value = float4x4.TRS(new float3(0f, -100f, 0f), quaternion.identity, new float3(1f))
+                    });
+                }
+
+                pool.Add(enemy);
+            }
+        }
+
+        public static void ReturnToPool(EntityCommandBuffer ecb, Entity enemy)
+        {
+            ecb.RemoveComponent<EnemyTag>(enemy);
+            ecb.RemoveComponent<EnemyReachedBase>(enemy);
+            ecb.AddComponent<PooledEnemy>(enemy);
+            ecb.SetComponent(enemy, LocalTransform.FromPosition(0f, -100f, 0f));
         }
 
         private static WaveDefinition GetWaveDefinition(
@@ -172,9 +259,7 @@ namespace UnityDotsDemo.Demo04
             {
                 Entity tower = ecb.Instantiate(config.TowerPrefab);
                 LocalTransform towerTransform = LocalTransform.FromPositionRotationScale(
-                    towerPoints[i].Position,
-                    quaternion.identity,
-                    1f);
+                    towerPoints[i].Position, quaternion.identity, 1f);
                 ecb.SetComponent(tower, towerTransform);
                 SetOrAddLocalToWorld(ecb, tower, towerPrefabHasLocalToWorld, towerTransform);
                 ecb.AddComponent<TowerTag>(tower);

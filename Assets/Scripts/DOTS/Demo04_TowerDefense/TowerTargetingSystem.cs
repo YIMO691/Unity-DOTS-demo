@@ -15,6 +15,7 @@ namespace UnityDotsDemo.Demo04
         {
             _enemyQuery = SystemAPI.QueryBuilder()
                 .WithAll<EnemyTag, LocalTransform, Health>()
+                .WithNone<PooledEnemy>()
                 .Build();
             _projectileQuery = SystemAPI.QueryBuilder()
                 .WithAll<ProjectileTag, ProjectileData>()

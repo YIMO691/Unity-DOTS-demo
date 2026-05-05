@@ -12,6 +12,8 @@ namespace UnityDotsDemo.Demo04
             Entity gameStateEntity = Entity.Null;
             GameState gameState = default;
             bool hasGameState = false;
+            Entity spawnerEntity = Entity.Null;
+            bool hasSpawner = false;
 
             foreach (var (gameStateRef, entity) in
                      SystemAPI.Query<RefRO<GameState>>().WithEntityAccess())
@@ -22,8 +24,16 @@ namespace UnityDotsDemo.Demo04
                 break;
             }
 
+            foreach (var (configRef, entity) in
+                     SystemAPI.Query<RefRO<WaveSpawnerConfig>>().WithEntityAccess())
+            {
+                spawnerEntity = entity;
+                hasSpawner = true;
+                break;
+            }
+
             foreach (var (healthRef, enemyEntity) in
-                     SystemAPI.Query<RefRO<Health>>().WithAll<EnemyTag>().WithEntityAccess())
+                     SystemAPI.Query<RefRO<Health>>().WithAll<EnemyTag>().WithNone<PooledEnemy>().WithEntityAccess())
             {
                 if (healthRef.ValueRO.Value <= 0f)
                 {
@@ -32,7 +42,11 @@ namespace UnityDotsDemo.Demo04
                         gameState.KillCount++;
                     }
 
-                    ecb.DestroyEntity(enemyEntity);
+                    WaveSpawnerSystem.ReturnToPool(ecb, enemyEntity);
+                    if (hasSpawner)
+                    {
+                        ecb.AppendToBuffer(spawnerEntity, enemyEntity);
+                    }
                 }
             }
 

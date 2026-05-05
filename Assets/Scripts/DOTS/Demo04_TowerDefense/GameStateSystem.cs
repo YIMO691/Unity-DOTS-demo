@@ -9,7 +9,7 @@ namespace UnityDotsDemo.Demo04
 
         public void OnCreate(ref SystemState state)
         {
-            _enemyQuery = SystemAPI.QueryBuilder().WithAll<EnemyTag>().Build();
+            _enemyQuery = SystemAPI.QueryBuilder().WithAll<EnemyTag>().WithNone<PooledEnemy>().Build();
         }
 
         public void OnUpdate(ref SystemState state)

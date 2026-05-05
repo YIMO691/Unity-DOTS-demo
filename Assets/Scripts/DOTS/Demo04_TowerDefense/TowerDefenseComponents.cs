@@ -92,4 +92,8 @@ namespace UnityDotsDemo.Demo04
     {
         public float Value;
     }
+
+    public struct PooledEnemy : IComponentData
+    {
+    }
 }

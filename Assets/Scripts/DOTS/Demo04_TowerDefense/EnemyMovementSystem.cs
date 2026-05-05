@@ -32,6 +32,7 @@ namespace UnityDotsDemo.Demo04
             foreach (var (transformRef, waypointIndexRef, speedRef, enemyEntity) in
                      SystemAPI.Query<RefRW<LocalTransform>, RefRW<WaypointIndex>, RefRO<MoveSpeed>>()
                          .WithAll<EnemyTag>()
+                         .WithNone<PooledEnemy>()
                          .WithEntityAccess())
             {
                 int targetIndex = waypointIndexRef.ValueRO.Value;

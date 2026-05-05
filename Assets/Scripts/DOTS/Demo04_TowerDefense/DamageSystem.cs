@@ -8,7 +8,7 @@ namespace UnityDotsDemo.Demo04
         public void OnUpdate(ref SystemState state)
         {
             foreach (var (healthRef, damageBuffer) in
-                     SystemAPI.Query<RefRW<Health>, DynamicBuffer<DamageEvent>>().WithAll<EnemyTag>())
+                     SystemAPI.Query<RefRW<Health>, DynamicBuffer<DamageEvent>>().WithAll<EnemyTag>().WithNone<PooledEnemy>())
             {
                 float totalDamage = 0f;
                 for (int i = 0; i < damageBuffer.Length; i++)

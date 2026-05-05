@@ -19,9 +19,20 @@ namespace UnityDotsDemo.Demo04
                 break;
             }
 
+            Entity spawnerEntity = Entity.Null;
+            bool hasSpawner = false;
+            foreach (var (configRef, entity) in
+                     SystemAPI.Query<RefRO<WaveSpawnerConfig>>().WithEntityAccess())
+            {
+                spawnerEntity = entity;
+                hasSpawner = true;
+                break;
+            }
+
             EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
             NativeArray<Entity> reachedEnemies = SystemAPI.QueryBuilder()
                 .WithAll<EnemyTag, EnemyReachedBase>()
+                .WithNone<PooledEnemy>()
                 .Build()
                 .ToEntityArray(Allocator.Temp);
 
@@ -32,7 +43,11 @@ namespace UnityDotsDemo.Demo04
                     baseHealth.CurrentHP--;
                 }
 
-                ecb.DestroyEntity(enemyEntity);
+                WaveSpawnerSystem.ReturnToPool(ecb, enemyEntity);
+                if (hasSpawner)
+                {
+                    ecb.AppendToBuffer(spawnerEntity, enemyEntity);
+                }
             }
 
             if (baseEntity != Entity.Null)

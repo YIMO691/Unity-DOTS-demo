@@ -29,7 +29,8 @@ namespace UnityDotsDemo.Demo04
                 ComponentType.ReadOnly<EnemyTag>(),
                 ComponentType.ReadOnly<Health>(),
                 ComponentType.ReadOnly<EnemyMaxHealth>(),
-                ComponentType.ReadOnly<LocalTransform>());
+                ComponentType.ReadOnly<LocalTransform>(),
+                ComponentType.Exclude<PooledEnemy>());
 
             NativeArray<Health> healths = query.ToComponentDataArray<Health>(Allocator.Temp);
             NativeArray<EnemyMaxHealth> maxHealths = query.ToComponentDataArray<EnemyMaxHealth>(Allocator.Temp);
