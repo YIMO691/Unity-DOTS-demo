@@ -17,8 +17,8 @@ Unity 2022.3 LTS · Entities 1.3.14 · URP 14.0.12
 ## Quick Start
 
 1. Install Unity `2022.3.62f3c1` or a compatible `2022.3 LTS` editor.
-2. Clone this repository.
-3. Open the project with Unity Hub.
+2. Clone: `git clone https://github.com/YIMO691/Unity-DOTS-demo.git`
+3. Open the project root folder with Unity Hub.
 4. Open `Assets/Scenes/DemoHub.unity` for the main menu, or any demo scene directly.
 5. Press Play.
 
@@ -155,6 +155,21 @@ To enable automated CI on push/PR:
 - `Documentation~/Benchmark.md` - benchmark recording template.
 - `Documentation~/Interview_Guide.md` - interview explanation guide.
 - `Documentation~/DemoHub_Plan.md` - future main menu scene plan.
+
+## Contributing
+
+Follow DOTS-first patterns consistent with the existing architecture:
+- Prefer `ISystem` over `SystemBase`, use `IJobEntity` for parallel iteration.
+- Add `[BurstCompile]` where the code path is Burst-compatible.
+- Use `EntityCommandBuffer` for structural changes and `LocalTransform` in ECS logic.
+- Keep components small and focused, convert authoring data with `Baker<T>`.
+
+Submit a PR:
+1. Create a feature branch from `main`.
+2. Make small, reviewable changes.
+3. Verify the target demo still runs in Unity.
+4. Update documentation when behavior or usage changes.
+5. Open a pull request with a clear summary and validation steps.
 
 ## License
 

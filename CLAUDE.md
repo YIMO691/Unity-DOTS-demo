@@ -39,6 +39,24 @@ CI is manual-dispatch only by default (`.github/workflows/test.yml`). See README
 
 The runtime assembly references `Unity.Entities.Hybrid` because `Baker<T>` is defined there in Entities 1.3.x.
 
+## Directory Layout
+
+| Path | Purpose |
+|------|---------|
+| `Assets/Scripts/UnityDotsDemo.asmdef` | Runtime assembly definition |
+| `Assets/Scripts/DOTS/Demo01_MovingCubes/` | Demo01 ECS code |
+| `Assets/Scripts/DOTS/Demo02_BouncingBalls/` | Demo02 ECS code |
+| `Assets/Scripts/DOTS/Demo03_FlockingAgents/` | Demo03 ECS code |
+| `Assets/Scripts/DOTS/Demo04_TowerDefense/` | Demo04 ECS code |
+| `Assets/Scripts/DOTS/Templates/DemoTemplate/` | Starter template for new demos |
+| `Assets/Scripts/Shared/` | Shared runtime code (HUD, UI, common DOTS components) |
+| `Assets/Editor/` | Editor setup scripts (Demo01-04 + DemoHub) |
+| `Assets/DOTS_DemoAssets/Demo01-04/` | Demo prefabs, materials, setup markers |
+| `Assets/Scenes/` | Main scenes, SubScenes, DemoHub |
+| `Assets/Tests/EditMode/` | NUnit EditMode tests |
+| `Assets/Tests/PlayMode/` | PlayMode smoke tests + benchmarks |
+| `Documentation~/` | Benchmark template, interview guide, learning checklist, performance doc |
+
 ## Architecture
 
 Every demo follows the same conversion pipeline:
@@ -79,11 +97,34 @@ Authoring GameObjects live inside SubScenes and bake into ECS entities at edit t
 - Use `EntityCommandBuffer` for structural changes (instantiate, destroy, add/remove component).
 - Use `LocalTransform` — never the deprecated `Translation`, `Rotation`, or `Scale` components.
 - Baker nested classes must use a specific name (e.g., `CubeSpawnerBaker : Baker<CubeSpawnerAuthoring>`), not `Baker : Baker<T>`, to avoid shadowing the generic `Baker<T>` type.
-- Namespaces: `UnityDotsDemo.Demo01`–`Demo04` for demo code, `DOTSDemo.Shared` for shared runtime code, `DOTS.Templates.DemoTemplate` for templates, `UnityDotsDemo.Tests` for tests.
+- Namespaces: `UnityDotsDemo.Demo01`–`Demo04` for demo code, `DOTSDemo.Shared` for shared runtime code and common DOTS components (`MoveSpeed`, `Velocity`), `UnityDotsDemo.Template` for templates, `UnityDotsDemo.Tests` for tests.
 
 ## Editor Auto-Setup
 
 Each demo has an `[InitializeOnLoad]` editor script (e.g., `Demo01MovingCubesSetup.cs`) that auto-creates the scene, SubScene, materials, prefabs, and URP pipeline on first project open. They write marker files under `Assets/DOTS_DemoAssets/DemoNN/.demoNN_setup_complete` to skip re-creation. Use menu `DOTS Demos > Rebuild Demo NN` to force rebuild. `DemoHubSetup.cs` also manages Build Settings scene list and Back Button injection.
+
+## Unity Gotchas
+
+- Do not delete `.meta` files — they contain GUIDs that scene/prefab references depend on.
+- Do not commit generated/cache directories: `Library/`, `Temp/`, `obj/`, `.vs/`, `Logs/`, `UserSettings/`.
+- Do not manually edit generated `.csproj` or `.sln` files — Unity regenerates them.
+- Let Unity Package Manager finish resolving packages before changing scripts.
+- Scene and SubScene references depend on `.meta` GUIDs. When scenes break, use `DOTS Demos > Rebuild Demo NN` to regenerate.
+
+## Adding A Future Demo
+
+1. Copy `Assets/Scripts/DOTS/Templates/DemoTemplate/`.
+2. Rename to `Demo05_YourName`.
+3. Update namespaces to `UnityDotsDemo.Demo05`.
+4. Create an editor setup script following the Demo01 pattern in `Assets/Editor/`.
+5. Create a main scene and SubScene under `Assets/Scenes/`.
+6. Put authoring GameObjects inside the SubScene (baking is mandatory).
+7. Add smoke tests and update README.
+
+## Current State
+
+- All four demos + DemoHub scene are implemented and tested.
+- Known work remaining: re-run benchmarks at higher entity counts (5k, 10k, 50k), capture GPU rendering data with Unity Profiler, and complete the learning checklist tasks in `Documentation~/LEARNING_CHECKLIST.md`.
 
 ## .gitignore Note
 
