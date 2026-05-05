@@ -1,21 +1,32 @@
-name: Unity Tests (Manual)
-
-# Unity CI requires a license. This workflow uses manual dispatch by default.
-# To enable automatic CI on push/PR:
-#   1. Set UNITY_LICENSE (or UNITY_EMAIL + UNITY_PASSWORD + UNITY_SERIAL) in
-#      Settings > Secrets and variables > Actions
-#   2. Uncomment the `push` and `pull_request` triggers below
-# License setup: https://game.ci/docs/github/activation
+name: Unity Tests
 
 on:
-  # push:
-  #   branches: [main]
-  # pull_request:
-  #   branches: [main]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
+  check-license:
+    runs-on: ubuntu-latest
+    outputs:
+      has_license: ${{ steps.check.outputs.has_license }}
+    steps:
+      - id: check
+        run: |
+          if [ -n "${{ secrets.UNITY_LICENSE }}" ] || [ -n "${{ secrets.UNITY_SERIAL }}" ]; then
+            echo "has_license=true" >> "$GITHUB_OUTPUT"
+            echo "Unity license found — tests will run."
+          else
+            echo "has_license=false" >> "$GITHUB_OUTPUT"
+            echo "No Unity license configured — tests skipped."
+            echo "Set UNITY_LICENSE or UNITY_SERIAL in repo secrets to enable."
+          fi
+
   editmode:
+    needs: check-license
+    if: needs.check-license.outputs.has_license == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +41,8 @@ jobs:
           testMode: editmode
 
   playmode:
+    needs: check-license
+    if: needs.check-license.outputs.has_license == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
