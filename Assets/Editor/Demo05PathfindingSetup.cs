@@ -381,11 +381,12 @@ namespace UnityDotsDemo.EditorTools
             serializedHud.FindProperty("techDescription").stringValue =
                 "BFS gradient field\nBufferLookup + Burst\n200+ agents in parallel";
             serializedHud.FindProperty("controlsHint").stringValue =
-                "Move target in Scene view to redirect agents";
+                "Click & drag on ground to move target";
             serializedHud.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(hud);
 
             EnsureSingleComponent<DemoBackButton>(hudObject);
+            EnsureSingleComponent<PathTargetController>(hudObject);
 
             EditorUtility.SetDirty(hudObject);
         }

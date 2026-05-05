@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Tests\EditMode\SpatialHashTests.cs" />
+    <Compile Include="Assets\Tests\EditMode\FlowFieldTests.cs" />
     <Compile Include="Assets\Tests\EditMode\Demo01_SpawnerTests.cs" />
     <Compile Include="Assets\Tests\EditMode\Demo04_WaveConfigTests.cs" />
   </ItemGroup>
