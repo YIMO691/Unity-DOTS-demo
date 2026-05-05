@@ -110,18 +110,33 @@ To run tests at maximum entity counts:
 
 ## Key Takeaways
 
-1. **Zero GC allocation** across all demos — DOTS struct-based components and
-   Burst-compiled jobs eliminate per-frame managed allocations.
-2. **Entity pooling** (Demo04 v0.5.0) eliminates Instantiate/DestroyEntity on
+1. **Zero GC allocation in batchmode** — DOTS struct-based components and Burst-compiled
+   jobs eliminate per-frame managed allocations. Editor Play Mode shows minor GC from
+   Editor/rendering overhead, not from ECS code.
+2. **Entity pooling** (Demo04 v1.0.0) eliminates Instantiate/DestroyEntity on
    the hot path. Pre-spawned enemies are activated/deactivated via tag components.
-3. **SpatialHash tradeoff** — the hash map overhead is visible at low entity
-   counts. The expected benefit materializes at higher counts (5,000–10,000)
-   where random neighbor sampling becomes the bottleneck.
-4. **Flow field scaling** — BFS cost is O(gridSize), agent movement is O(n).
-   Grid recompute cost is fixed; only agent count affects per-frame time.
-5. **Headless vs. real rendering** — batchmode numbers represent CPU-only cost.
-   For production profiling, run in Play Mode with Unity Profiler capturing
-   both CPU and GPU timelines.
+3. **SpatialHash tradeoff** — hash map overhead is visible at low entity counts.
+   Expected benefit at 5,000+ where Basic mode's O(n²) sampling degrades.
+4. **Flow field scaling** (Demo05) — BFS cost is O(gridSize), agent movement is O(n).
+   At 40×40 grid, BFS is ~0.1ms; 211 agents move in ~5.8ms including rendering.
+5. **Editor vs batchmode** — batchmode shows sub-2ms CPU time per demo. Editor Play
+   Mode adds GPU rendering and Editor loop overhead, resulting in 4-6ms frame times.
+
+## Editor Play Mode Results (2026-05-05)
+
+Measured via `PerformanceBenchmarks` PlayMode test in Unity Editor. Includes GPU rendering.
+
+| Demo | Entities | Avg FPS | Frame ms | P95 ms | GC/frame |
+|------|----------|---------|----------|--------|----------|
+| Demo01 Moving Cubes | 1,009 | 217 | 4.60 | 5.07 | 1.4 KB |
+| Demo02 Bouncing Balls | 219 | 218 | 4.59 | 5.08 | 1.2 KB |
+| Demo03 Basic | 515 | 212 | 4.71 | 5.30 | 1.7 KB |
+| Demo03 SpatialHash | 516 | 208 | 4.81 | 5.35 | 1.4 KB |
+| Demo04 Tower Defense | 64 peak | 193 | 5.19 | 5.78 | 2.4 KB |
+| Demo05 Flow Field | 211 | 171 | 5.84 | 6.31 | 0.9 KB |
+
+GC allocation in Play Mode comes from Editor loop and rendering, not from DOTS ECS code.
+Batchmode (headless) measurements confirm 0 B per frame across all demos.
 
 ## Profiler Screenshots
 
