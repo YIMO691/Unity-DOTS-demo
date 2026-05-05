@@ -150,9 +150,13 @@ To enable automated CI on push/PR:
 - [x] Demo03: Boids flocking (basic)
 - [x] Demo03: Spatial hash optimization mode
 - [x] Demo04: Tower defense gameplay loop (win/lose, UI, enemy wave variants)
+- [x] Demo04: Entity pooling (pre-spawn + reuse)
+- [x] Demo05: Flow field pathfinding (BFS + Burst parallel agents)
 - [x] Performance benchmarks with Profiler data (batchmode, headless)
 - [x] CI/CD with GitHub Actions
 - [x] Demo Hub main menu scene
+- [x] Code refactoring: shared components, SpawnerHelper, GUIStyleHelper
+- [x] System split: WaveSpawner → 3 single-responsibility systems
 
 ## Documentation
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.0.0] - 2026-05-05
+
+### Added
+- Demo05: Flow Field Pathfinding — BFS gradient field + Burst IJobEntity parallel agent movement.
+- Demo05: editor auto-setup script (scene, SubScene, Capsule agent prefab, orange material).
+- Demo05: PlayMode smoke test (300 frames) and benchmark template (200/500/1000 agents).
+- Entity pooling: Demo04 enemies pre-spawned and reused via `PooledEnemy` tag, eliminating per-frame Instantiate/DestroyEntity.
+- `EnemyPoolUtility`: shared pool helpers (ReturnToPool, GrowPool, GrowPoolIfNeeded).
+
+### Changed
+- Refactored: split Demo04 `WaveSpawnerSystem` (280 lines) into `TowerSpawnSystem` + `WaveProgressionSystem` + `EnemySpawnSystem` with shared `EnemyPoolUtility`.
+- System order updated: `TowerSpawn → WaveProgression → EnemySpawn → EnemyMovement → TowerTargeting → ProjectileMovement → Damage → Cleanup → BaseHealth → GameState`.
+- All Demo04 systems now exclude pooled entities via `.WithNone<PooledEnemy>()`.
+- Benchmark.md: added Demo05 section, high-stress benchmark guide, updated key takeaways.
+
+### Fixed
+- CI: reverted push/PR triggers to manual dispatch (requires UNITY_LICENSE secret).
+- Demo05: removed `[ReadOnly]` attributes incompatible with IJobEntity.
+- Demo04 split: added missing `DOTSDemo.Shared` and `Unity.Mathematics` using directives.
+
 ## [0.4.0] - 2026-05-05
 
 ### Changed

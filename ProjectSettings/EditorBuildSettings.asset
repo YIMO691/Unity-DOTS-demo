@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Demo04_TowerDefense.unity
     guid: d55cb16cf4889484e9e5f675fafd3024
+  - enabled: 1
+    path: Assets/Scenes/Demo05_Pathfinding.unity
+    guid: 00000000000000000000000000000000
   m_configObjects: {}

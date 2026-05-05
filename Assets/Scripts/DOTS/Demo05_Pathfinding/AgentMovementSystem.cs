@@ -1,5 +1,6 @@
 using DOTSDemo.Shared;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -41,9 +42,9 @@ namespace UnityDotsDemo.Demo05
         private partial struct AgentMoveJob : IJobEntity
         {
             public float DeltaTime;
-            public FlowFieldGrid Grid;
-            public BufferLookup<FlowFieldCell> FlowFieldLookup;
-            public Entity GridEntity;
+            [ReadOnly] public FlowFieldGrid Grid;
+            [ReadOnly] public BufferLookup<FlowFieldCell> FlowFieldLookup;
+            [ReadOnly] public Entity GridEntity;
 
             private void Execute(ref LocalTransform transform, in MoveSpeed speed)
             {
