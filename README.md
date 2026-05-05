@@ -13,6 +13,7 @@ Unity 2022.3 LTS · Entities 1.3.14 · URP 14.0.12
 | 02 | Bouncing Balls | `Assets/Scenes/Demo02_BouncingBalls/` | Unity Physics, `PhysicsVelocity`, collider baking, reset loop | 100-1k | Done |
 | 03 | Flocking Agents | `Assets/Scenes/Demo03_FlockingAgents/` | Boids, Basic/SpatialHash modes, separation/alignment/cohesion | 500-10k | Done |
 | 04 | Tower Defense | `Assets/Scenes/Demo04_TowerDefense/` | ECS gameplay loop, waves, targeting, projectiles, win/lose state | 100-500 | Done |
+| 05 | Flow Field | `Assets/Scenes/Demo05_Pathfinding/` | BFS flow field, parallel agent movement, grid-based pathfinding | 100-500 | Done |
 
 ## Quick Start
 
@@ -32,7 +33,8 @@ Assets/
 |   |-- Demo01/
 |   |-- Demo02/
 |   |-- Demo03/
-|   `-- Demo04/
+|   |-- Demo04/
+|   `-- Demo05/
 |-- Editor/
 |   |-- DemoHubSetup.cs
 |   |-- Demo01MovingCubesSetup.cs
@@ -45,6 +47,7 @@ Assets/
 |   |-- Demo02_BouncingBalls/
 |   |-- Demo03_FlockingAgents/
 |   |-- Demo04_TowerDefense/
+|   |-- Demo05_Pathfinding/
 |   |-- Demo01_MovingCubes.unity
 |   |-- Demo02_BouncingBalls.unity
 |   |-- Demo03_FlockingAgents.unity
@@ -59,6 +62,7 @@ Assets/
 |       |-- Demo02_BouncingBalls/
 |       |-- Demo03_FlockingAgents/
 |       |-- Demo04_TowerDefense/
+|       |-- Demo05_Pathfinding/
 |       `-- Templates/
 `-- Settings/
 ```

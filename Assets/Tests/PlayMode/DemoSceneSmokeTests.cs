@@ -33,6 +33,12 @@ namespace UnityDotsDemo.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Demo05RunsFor300Frames()
+        {
+            yield return LoadAndRunFrames("Demo05_Pathfinding");
+        }
+
+        [UnityTest]
         public IEnumerator DemoHubRunsFor300Frames()
         {
             yield return LoadAndRunFrames("DemoHub");

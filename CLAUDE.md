@@ -48,6 +48,7 @@ The runtime assembly references `Unity.Entities.Hybrid` because `Baker<T>` is de
 | `Assets/Scripts/DOTS/Demo02_BouncingBalls/` | Demo02 ECS code |
 | `Assets/Scripts/DOTS/Demo03_FlockingAgents/` | Demo03 ECS code |
 | `Assets/Scripts/DOTS/Demo04_TowerDefense/` | Demo04 ECS code |
+| `Assets/Scripts/DOTS/Demo05_Pathfinding/` | Demo05 ECS code |
 | `Assets/Scripts/DOTS/Templates/DemoTemplate/` | Starter template for new demos |
 | `Assets/Scripts/Shared/` | Shared runtime code (HUD, UI, common DOTS components) |
 | `Assets/Editor/` | Editor setup scripts (Demo01-04 + DemoHub) |
@@ -89,6 +90,13 @@ Authoring GameObjects live inside SubScenes and bake into ECS entities at edit t
 - `WaveSpawnerSystem` spawns towers once (`TowersSpawned` byte flag), then spawns enemy waves. It reads `WaveDefinition` buffers for per-wave enemy type counts and stats.
 - `GameStateComponent` holds a `GamePhase` enum (Playing/Victory/Defeat). The `GameStateSystem` checks win (all waves cleared, no enemies alive) and loss (base health ≤ 0) conditions.
 
+### Demo05 — Flow Field Pathfinding
+- `PathfindingAuthoring` bakes `FlowFieldGrid` + `PathTarget` + `DynamicBuffer<FlowFieldCell>` onto a singleton entity.
+- `FlowFieldSystem` runs BFS from the target cell outward, populating each cell's `Direction` vector (pointing toward target) and `Cost` (distance). Uses `NativeList<int>` as a manual queue.
+- `AgentSpawnerSystem` spawns agents in a circle around the grid center, then self-destructs.
+- `AgentMovementSystem` is a `[BurstCompile] IJobEntity` that converts each agent's world position to a grid cell, reads the flow field direction via `BufferLookup<FlowFieldCell>`, and moves accordingly.
+- Key algorithm: BFS propagation from target → gradient field → hundreds of agents follow the gradient in parallel without per-agent pathfinding.
+
 ## Key Conventions
 
 - Always use `ISystem`, not `SystemBase`.
@@ -97,7 +105,7 @@ Authoring GameObjects live inside SubScenes and bake into ECS entities at edit t
 - Use `EntityCommandBuffer` for structural changes (instantiate, destroy, add/remove component).
 - Use `LocalTransform` — never the deprecated `Translation`, `Rotation`, or `Scale` components.
 - Baker nested classes must use a specific name (e.g., `CubeSpawnerBaker : Baker<CubeSpawnerAuthoring>`), not `Baker : Baker<T>`, to avoid shadowing the generic `Baker<T>` type.
-- Namespaces: `UnityDotsDemo.Demo01`–`Demo04` for demo code, `DOTSDemo.Shared` for shared runtime code and common DOTS components (`MoveSpeed`, `Velocity`), `UnityDotsDemo.Template` for templates, `UnityDotsDemo.Tests` for tests.
+- Namespaces: `UnityDotsDemo.Demo01`–`Demo05` for demo code, `DOTSDemo.Shared` for shared runtime code and common DOTS components (`MoveSpeed`, `Velocity`), `UnityDotsDemo.Template` for templates, `UnityDotsDemo.Tests` for tests.
 
 ## Editor Auto-Setup
 
