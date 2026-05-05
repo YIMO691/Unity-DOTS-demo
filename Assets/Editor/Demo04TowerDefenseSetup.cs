@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using DOTSDemo.Shared;
 using Unity.Scenes;
 using Unity.Scenes.Editor;
 using UnityDotsDemo.Demo04;
@@ -51,7 +52,7 @@ namespace UnityDotsDemo.EditorTools
 
         private static void AutoCreateOnce()
         {
-            if (IsImportWorker())
+            if (IsAutomatedRun() || IsImportWorker())
             {
                 return;
             }
@@ -150,13 +151,24 @@ namespace UnityDotsDemo.EditorTools
                    commandLine.IndexOf("-assetImportWorker", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
+        private static bool IsAutomatedRun()
+        {
+            return Application.isBatchMode ||
+                   Environment.CommandLine.IndexOf("-runTests", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         private static bool DemoSceneIsCurrent()
         {
             return File.Exists(MainScenePath) &&
                    File.Exists(SubScenePath) &&
                    SceneFileContains(MainScenePath, "Demo04_TowerDefense_SubScene") &&
                    SceneFileContains(MainScenePath, "Demo04 Runtime UI") &&
-                   SceneFileContains(SubScenePath, "DOTS Wave Spawner");
+                   SceneFileContains(MainScenePath, "guid: d0ad485f377ff324195b7eb48bc13bcc") &&
+                   SceneFileContains(MainScenePath, "guid: 3d4789cc8a548294092fa7a63a68ffd8") &&
+                   SceneFileContains(SubScenePath, "DOTS Wave Spawner") &&
+                   SceneFileContains(SubScenePath, "m_LocalPosition: {x: 5.5, y: 0, z: -4.5}") &&
+                   SceneFileContains(SubScenePath, "guid: b3490c6087724dc68ff54bfa22f88b8f") &&
+                   SceneFileContains(SubScenePath, "guid: 13e30a4805f8423dae483396ee3e2430");
         }
 
         private static bool SceneFileContains(string path, string value)
@@ -492,7 +504,7 @@ namespace UnityDotsDemo.EditorTools
             {
                 new Vector3(-12f, 0f, -5f),
                 new Vector3(-4f, 0f, 5f),
-                new Vector3(5f, 0f, 4f),
+                new Vector3(5f, 0f, 5.5f),
                 new Vector3(12f, 0f, -3f)
             };
 
@@ -539,6 +551,7 @@ namespace UnityDotsDemo.EditorTools
                 marker.transform.localPosition = Vector3.up * 0.2f;
                 marker.transform.localRotation = Quaternion.identity;
                 marker.transform.localScale = Vector3.one * 0.45f;
+                marker.SetActive(false);
                 marker.GetComponent<MeshFilter>().sharedMesh = GetPrimitiveMesh(PrimitiveType.Sphere);
                 MeshRenderer markerRenderer = marker.GetComponent<MeshRenderer>();
                 markerRenderer.sharedMaterial = pathMaterial;
@@ -597,9 +610,9 @@ namespace UnityDotsDemo.EditorTools
         {
             Vector3[] positions =
             {
-                new Vector3(-6f, 0f, 0f),
-                new Vector3(1f, 0f, 1.5f),
-                new Vector3(7f, 0f, 0f)
+                new Vector3(-7f, 0f, 0f),
+                new Vector3(5.5f, 0f, -4.5f),
+                new Vector3(8f, 0f, 0.5f)
             };
 
             GameObject root = FindRootObject(subScene, "Tower Pads");
@@ -675,11 +688,9 @@ namespace UnityDotsDemo.EditorTools
                 SceneManager.MoveGameObjectToScene(spawner, subScene);
             }
 
-            WaveSpawnerAuthoring authoring = spawner.GetComponent<WaveSpawnerAuthoring>();
-            if (authoring == null)
-            {
-                authoring = spawner.AddComponent<WaveSpawnerAuthoring>();
-            }
+            GameObjectUtility.RemoveMonoBehavioursWithMissingScript(spawner);
+            RemoveAuthoringOnlyVisuals(spawner);
+            WaveSpawnerAuthoring authoring = EnsureSingleComponent<WaveSpawnerAuthoring>(spawner);
 
             authoring.EnemyPrefab = enemyPrefab;
             authoring.TowerPrefab = towerPrefab;
@@ -746,23 +757,44 @@ namespace UnityDotsDemo.EditorTools
                 SceneManager.MoveGameObjectToScene(stateObject, subScene);
             }
 
-            GameStateAuthoring gameState = stateObject.GetComponent<GameStateAuthoring>();
-            if (gameState == null)
-            {
-                gameState = stateObject.AddComponent<GameStateAuthoring>();
-            }
+            GameObjectUtility.RemoveMonoBehavioursWithMissingScript(stateObject);
+            RemoveAuthoringOnlyVisuals(stateObject);
+            GameStateAuthoring gameState = EnsureSingleComponent<GameStateAuthoring>(stateObject);
             gameState.TotalWaves = 5;
 
-            BaseHealthAuthoring baseHealth = stateObject.GetComponent<BaseHealthAuthoring>();
-            if (baseHealth == null)
-            {
-                baseHealth = stateObject.AddComponent<BaseHealthAuthoring>();
-            }
+            BaseHealthAuthoring baseHealth = EnsureSingleComponent<BaseHealthAuthoring>(stateObject);
             baseHealth.MaxHP = 20;
 
             EditorUtility.SetDirty(stateObject);
             EditorUtility.SetDirty(gameState);
             EditorUtility.SetDirty(baseHealth);
+        }
+
+        private static void RemoveAuthoringOnlyVisuals(GameObject gameObject)
+        {
+            Transform[] children = gameObject.GetComponentsInChildren<Transform>(includeInactive: true);
+            for (int i = children.Length - 1; i >= 0; i--)
+            {
+                if (children[i] != gameObject.transform)
+                {
+                    UnityEngine.Object.DestroyImmediate(children[i].gameObject);
+                }
+            }
+
+            foreach (Renderer renderer in gameObject.GetComponents<Renderer>())
+            {
+                UnityEngine.Object.DestroyImmediate(renderer);
+            }
+
+            foreach (MeshFilter meshFilter in gameObject.GetComponents<MeshFilter>())
+            {
+                UnityEngine.Object.DestroyImmediate(meshFilter);
+            }
+
+            foreach (Collider collider in gameObject.GetComponents<Collider>())
+            {
+                UnityEngine.Object.DestroyImmediate(collider);
+            }
         }
 
         private static Mesh GetPrimitiveMesh(PrimitiveType primitiveType)
@@ -811,22 +843,44 @@ namespace UnityDotsDemo.EditorTools
                 SceneManager.MoveGameObjectToScene(hudObject, mainScene);
             }
 
-            if (hudObject.GetComponent<GameHUD>() == null)
-            {
-                hudObject.AddComponent<GameHUD>();
-            }
+            GameHUD gameHud = EnsureSingleComponent<GameHUD>(hudObject);
+            DemoHUD demoHud = EnsureSingleComponent<DemoHUD>(hudObject);
 
-            if (hudObject.GetComponent<EnemyHealthBars>() == null)
-            {
-                hudObject.AddComponent<EnemyHealthBars>();
-            }
+            SerializedObject serializedHud = new SerializedObject(demoHud);
+            serializedHud.FindProperty("demoName").stringValue = "Tower Defense";
+            serializedHud.FindProperty("techDescription").stringValue =
+                "ECS gameplay loop\nWave spawning + Tower targeting\nProjectile + Damage + Cleanup";
+            serializedHud.FindProperty("controlsHint").stringValue =
+                "R: restart; watch waves, base HP, enemy health bars, and tower ranges";
+            serializedHud.ApplyModifiedPropertiesWithoutUndo();
 
-            if (hudObject.GetComponent<TowerRangeGizmos>() == null)
-            {
-                hudObject.AddComponent<TowerRangeGizmos>();
-            }
+            EnemyHealthBars healthBars = EnsureSingleComponent<EnemyHealthBars>(hudObject);
+            TowerRangeGizmos rangeGizmos = EnsureSingleComponent<TowerRangeGizmos>(hudObject);
+            DemoBackButton backButton = EnsureSingleComponent<DemoBackButton>(hudObject);
 
+            EditorUtility.SetDirty(gameHud);
+            EditorUtility.SetDirty(demoHud);
+            EditorUtility.SetDirty(healthBars);
+            EditorUtility.SetDirty(rangeGizmos);
+            EditorUtility.SetDirty(backButton);
             EditorUtility.SetDirty(hudObject);
+        }
+
+        private static T EnsureSingleComponent<T>(GameObject gameObject) where T : Component
+        {
+            T[] components = gameObject.GetComponents<T>();
+            if (components.Length == 0)
+            {
+                return gameObject.AddComponent<T>();
+            }
+
+            T keep = components[0];
+            for (int i = 1; i < components.Length; i++)
+            {
+                UnityEngine.Object.DestroyImmediate(components[i]);
+            }
+
+            return keep;
         }
 
         private static void CreateOrUpdateSubSceneReference(Scene mainScene)

@@ -29,11 +29,11 @@ namespace UnityDotsDemo.Demo04
                 ComponentType.ReadOnly<EnemyTag>(),
                 ComponentType.ReadOnly<Health>(),
                 ComponentType.ReadOnly<EnemyMaxHealth>(),
-                ComponentType.ReadOnly<LocalToWorld>());
+                ComponentType.ReadOnly<LocalTransform>());
 
             NativeArray<Health> healths = query.ToComponentDataArray<Health>(Allocator.Temp);
             NativeArray<EnemyMaxHealth> maxHealths = query.ToComponentDataArray<EnemyMaxHealth>(Allocator.Temp);
-            NativeArray<LocalToWorld> transforms = query.ToComponentDataArray<LocalToWorld>(Allocator.Temp);
+            NativeArray<LocalTransform> transforms = query.ToComponentDataArray<LocalTransform>(Allocator.Temp);
 
             for (int i = 0; i < healths.Length; i++)
             {

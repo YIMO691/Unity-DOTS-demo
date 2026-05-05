@@ -8,8 +8,8 @@ namespace UnityDotsDemo.Demo02
     {
         public GameObject BallPrefab;
         [Min(1)] public int Count = 200;
-        public Vector3 SpawnCenter = new Vector3(0f, 12f, 0f);
-        public Vector3 SpawnSize = new Vector3(18f, 8f, 18f);
+        public Vector3 SpawnCenter = new Vector3(0f, 5f, 0f);
+        public Vector3 SpawnSize = new Vector3(18f, 7f, 18f);
         public float ResetY = -6f;
         [Min(1)] public int RandomSeed = 777;
 

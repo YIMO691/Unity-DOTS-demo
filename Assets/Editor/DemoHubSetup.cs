@@ -49,8 +49,10 @@ namespace UnityDotsDemo.EditorTools
 
         private static void AutoCreateOnce()
         {
-            if (IsImportWorker() || EditorApplication.isPlayingOrWillChangePlaymode)
+            if (IsAutomatedRun() || IsImportWorker() || EditorApplication.isPlayingOrWillChangePlaymode)
+            {
                 return;
+            }
 
             if (EditorApplication.isCompiling || EditorApplication.isUpdating)
             {
@@ -60,8 +62,8 @@ namespace UnityDotsDemo.EditorTools
 
             if (File.Exists(MarkerPath) && File.Exists(MainScenePath))
             {
-                // Setup already done. Do NOT call SaveAssets or modify scenes
-                // on every domain reload — that triggers an infinite reload loop.
+                EnsureAllScenesInBuildSettings();
+                EnsureBackButtons();
                 return;
             }
 
@@ -95,7 +97,6 @@ namespace UnityDotsDemo.EditorTools
                 AssetDatabase.DeleteAsset(MainScenePath);
             }
 
-            // Use Single mode — untitled default scenes can't be closed and block additive creation.
             Scene scene;
             if (File.Exists(MainScenePath))
             {
@@ -107,22 +108,25 @@ namespace UnityDotsDemo.EditorTools
                 EditorSceneManager.SaveScene(scene, MainScenePath);
             }
 
-            // Remove default objects we don't need
-            foreach (GameObject root in scene.GetRootGameObjects().ToList())
+            foreach (GameObject root in scene.GetRootGameObjects())
             {
-                if (root.name == "Main Camera")
+                if (root.name != "Main Camera")
                 {
-                    Camera cam = root.GetComponent<Camera>();
-                    if (cam != null)
-                    {
-                        cam.clearFlags = CameraClearFlags.SolidColor;
-                        cam.backgroundColor = new Color(0.08f, 0.08f, 0.12f);
-                        cam.tag = "MainCamera";
-                    }
+                    continue;
                 }
+
+                Camera camera = root.GetComponent<Camera>();
+                if (camera == null)
+                {
+                    continue;
+                }
+
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = new Color(0.08f, 0.08f, 0.12f);
+                camera.tag = "MainCamera";
+                EditorUtility.SetDirty(camera);
             }
 
-            // Add Hub UI
             GameObject hubObject = FindRootObject(scene, "DemoHub UI");
             if (hubObject == null)
             {
@@ -130,51 +134,55 @@ namespace UnityDotsDemo.EditorTools
                 SceneManager.MoveGameObjectToScene(hubObject, scene);
             }
 
-            DemoHubUI hubUI = hubObject.GetComponent<DemoHubUI>();
-            if (hubUI == null)
+            if (hubObject.GetComponent<DemoHubUI>() == null)
             {
-                hubUI = hubObject.AddComponent<DemoHubUI>();
+                hubObject.AddComponent<DemoHubUI>();
             }
 
+            EditorUtility.SetDirty(hubObject);
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, MainScenePath);
         }
 
         private static void EnsureAllScenesInBuildSettings()
         {
-            EditorBuildSettingsScene[] existing = EditorBuildSettings.scenes;
+            var scenes = EditorBuildSettings.scenes.ToList();
+            bool changed = false;
 
-            // Put DemoHub first, then demo scenes
-            string[] allPaths = new[] { MainScenePath }.Concat(DemoScenePaths).ToArray();
-
-            foreach (string path in allPaths)
+            string[] requiredPaths = new[] { MainScenePath }.Concat(DemoScenePaths).ToArray();
+            foreach (string path in requiredPaths)
             {
-                if (!existing.Any(s => s.path == path))
+                int sceneIndex = scenes.FindIndex(scene => scene.path == path);
+                if (sceneIndex >= 0)
                 {
-                    existing = existing.Concat(
-                        new[] { new EditorBuildSettingsScene(path, true) }).ToArray();
+                    if (!scenes[sceneIndex].enabled)
+                    {
+                        scenes[sceneIndex] = new EditorBuildSettingsScene(path, true);
+                        changed = true;
+                    }
+
+                    continue;
                 }
+
+                scenes.Add(new EditorBuildSettingsScene(path, true));
+                changed = true;
             }
 
-            // Move DemoHub to index 0
-            int hubIndex = Array.FindIndex(existing, s => s.path == MainScenePath);
+            int hubIndex = scenes.FindIndex(scene => scene.path == MainScenePath);
             if (hubIndex > 0)
             {
-                var list = existing.ToList();
-                var hub = list[hubIndex];
-                list.RemoveAt(hubIndex);
-                list.Insert(0, hub);
-                existing = list.ToArray();
+                EditorBuildSettingsScene hubScene = scenes[hubIndex];
+                scenes.RemoveAt(hubIndex);
+                scenes.Insert(0, hubScene);
+                changed = true;
             }
 
-            EditorBuildSettings.scenes = existing;
+            if (changed)
+            {
+                EditorBuildSettings.scenes = scenes.ToArray();
+            }
         }
 
-        /// <summary>
-        /// <summary>
-        /// Patches existing demo scenes to include a DemoBackButton component on their HUD GameObjects.
-        /// Safe to call multiple times — never duplicates.
-        /// </summary>
         public static void EnsureBackButtons()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
@@ -184,32 +192,15 @@ namespace UnityDotsDemo.EditorTools
 
             foreach (string scenePath in DemoScenePaths)
             {
-                if (!File.Exists(scenePath)) continue;
+                if (!File.Exists(scenePath))
+                {
+                    continue;
+                }
 
                 Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
                 try
                 {
-                    bool changed = false;
-
-                    // Remove any orphaned "Demo Back Button" GameObjects from previous broken patcher.
-                    foreach (GameObject root in scene.GetRootGameObjects().ToList())
-                    {
-                        if (root.name == "Demo Back Button")
-                        {
-                            UnityEngine.Object.DestroyImmediate(root);
-                            changed = true;
-                        }
-                    }
-
-                    // Add DemoBackButton to the existing HUD GameObject.
-                    DemoHUD hud = FindHudInScene(scene);
-                    if (hud != null && hud.GetComponent<DemoBackButton>() == null)
-                    {
-                        hud.gameObject.AddComponent<DemoBackButton>();
-                        EditorUtility.SetDirty(hud.gameObject);
-                        changed = true;
-                    }
-
+                    bool changed = EnsureSingleBackButton(scene);
                     if (changed)
                     {
                         EditorSceneManager.MarkSceneDirty(scene);
@@ -223,26 +214,77 @@ namespace UnityDotsDemo.EditorTools
             }
         }
 
-        private static DemoHUD FindHudInScene(Scene scene)
+        private static bool EnsureSingleBackButton(Scene scene)
         {
-            foreach (GameObject root in scene.GetRootGameObjects())
+            DemoBackButton[] buttons = FindBackButtons(scene);
+            if (buttons.Length == 0)
             {
-                DemoHUD hud = root.GetComponentInChildren<DemoHUD>(includeInactive: true);
-                if (hud != null) return hud;
+                GameObject buttonObject = FindRootObject(scene, "Demo Back Button");
+                if (buttonObject == null)
+                {
+                    buttonObject = new GameObject("Demo Back Button");
+                    SceneManager.MoveGameObjectToScene(buttonObject, scene);
+                }
+
+                buttonObject.AddComponent<DemoBackButton>();
+                EditorUtility.SetDirty(buttonObject);
+                return true;
             }
-            return null;
+
+            if (buttons.Length == 1)
+            {
+                return false;
+            }
+
+            DemoBackButton keep = buttons.FirstOrDefault(button => button.gameObject.name != "Demo Back Button") ??
+                                  buttons[0];
+            foreach (DemoBackButton duplicate in buttons)
+            {
+                if (duplicate == keep)
+                {
+                    continue;
+                }
+
+                GameObject duplicateObject = duplicate.gameObject;
+                if (duplicateObject.scene == scene &&
+                    duplicateObject.name == "Demo Back Button" &&
+                    duplicateObject.transform.parent == null)
+                {
+                    UnityEngine.Object.DestroyImmediate(duplicateObject);
+                }
+                else
+                {
+                    UnityEngine.Object.DestroyImmediate(duplicate);
+                }
+            }
+
+            EditorUtility.SetDirty(keep.gameObject);
+            return true;
+        }
+
+        private static DemoBackButton[] FindBackButtons(Scene scene)
+        {
+            return scene.GetRootGameObjects()
+                .SelectMany(root => root.GetComponentsInChildren<DemoBackButton>(includeInactive: true))
+                .ToArray();
         }
 
         private static bool IsImportWorker()
         {
-            string cmd = Environment.CommandLine;
-            return cmd.IndexOf("AssetImportWorker", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                   cmd.IndexOf("-assetImportWorker", StringComparison.OrdinalIgnoreCase) >= 0;
+            string commandLine = Environment.CommandLine;
+            return commandLine.IndexOf("AssetImportWorker", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   commandLine.IndexOf("-assetImportWorker", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsAutomatedRun()
+        {
+            return Application.isBatchMode ||
+                   Environment.CommandLine.IndexOf("-runTests", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static GameObject FindRootObject(Scene scene, string name)
         {
-            return scene.GetRootGameObjects().FirstOrDefault(r => r.name == name);
+            return scene.GetRootGameObjects().FirstOrDefault(root => root.name == name);
         }
     }
 }

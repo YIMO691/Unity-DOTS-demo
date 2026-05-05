@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using DOTSDemo.Shared;
 using Unity.Scenes;
 using Unity.Scenes.Editor;
 using UnityDotsDemo.Demo01;
@@ -37,9 +38,14 @@ namespace UnityDotsDemo.EditorTools
             SetupDemo(force: true);
         }
 
+        public static void RepairDemo01()
+        {
+            SetupDemo(force: false);
+        }
+
         private static void AutoCreateOnce()
         {
-            if (IsImportWorker() || EditorApplication.isPlayingOrWillChangePlaymode)
+            if (IsAutomatedRun() || IsImportWorker() || EditorApplication.isPlayingOrWillChangePlaymode)
             {
                 return;
             }
@@ -50,7 +56,7 @@ namespace UnityDotsDemo.EditorTools
                 return;
             }
 
-            if (File.Exists(MarkerPath))
+            if (File.Exists(MarkerPath) && DemoSceneIsCurrent())
             {
                 EnsureUrpAsset();
                 AssetDatabase.SaveAssets();
@@ -89,6 +95,25 @@ namespace UnityDotsDemo.EditorTools
             string commandLine = Environment.CommandLine;
             return commandLine.IndexOf("AssetImportWorker", StringComparison.OrdinalIgnoreCase) >= 0 ||
                    commandLine.IndexOf("-assetImportWorker", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsAutomatedRun()
+        {
+            return Application.isBatchMode ||
+                   Environment.CommandLine.IndexOf("-runTests", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool DemoSceneIsCurrent()
+        {
+            return File.Exists(MainScenePath) &&
+                   File.Exists(SubScenePath) &&
+                   SceneFileContains(MainScenePath, "Demo01_MovingCubes_SubScene") &&
+                   SceneFileContains(MainScenePath, "Demo01 HUD");
+        }
+
+        private static bool SceneFileContains(string path, string value)
+        {
+            return File.Exists(path) && File.ReadAllText(path).Contains(value);
         }
 
         private static void EnsureFolders()
@@ -284,11 +309,7 @@ namespace UnityDotsDemo.EditorTools
                 SceneManager.MoveGameObjectToScene(spawner, subScene);
             }
 
-            CubeSpawnerAuthoring authoring = spawner.GetComponent<CubeSpawnerAuthoring>();
-            if (authoring == null)
-            {
-                authoring = spawner.AddComponent<CubeSpawnerAuthoring>();
-            }
+            CubeSpawnerAuthoring authoring = EnsureSingleComponent<CubeSpawnerAuthoring>(spawner);
 
             authoring.CubePrefab = cubePrefab;
             authoring.SpawnCount = 1000;
@@ -341,29 +362,36 @@ namespace UnityDotsDemo.EditorTools
                 SceneManager.MoveGameObjectToScene(hudObject, mainScene);
             }
 
-            Component hud = hudObject.GetComponent("DemoHUD");
-            if (hud == null)
-            {
-                Type hudType = Type.GetType("DOTSDemo.Shared.DemoHUD, UnityDotsDemo");
-                if (hudType != null)
-                {
-                    hud = hudObject.AddComponent(hudType);
-                }
-            }
+            DemoHUD hud = EnsureSingleComponent<DemoHUD>(hudObject);
+            SerializedObject serializedHud = new SerializedObject(hud);
+            serializedHud.FindProperty("demoName").stringValue = "Moving Cubes";
+            serializedHud.FindProperty("techDescription").stringValue =
+                "IJobEntity + Burst + ECB\nParallel entity movement\nBoundary wrap";
+            serializedHud.FindProperty("controlsHint").stringValue =
+                "SpawnCount test values: 1000 / 5000 / 10000 / 50000";
+            serializedHud.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(hud);
 
-            if (hud != null)
-            {
-                SerializedObject serializedHud = new SerializedObject(hud);
-                serializedHud.FindProperty("demoName").stringValue = "Moving Cubes";
-                serializedHud.FindProperty("techDescription").stringValue =
-                    "IJobEntity + Burst + ECB\nParallel entity movement\nBoundary wrap";
-                serializedHud.FindProperty("controlsHint").stringValue =
-                    "SpawnCount test values: 1000 / 5000 / 10000 / 50000";
-                serializedHud.ApplyModifiedPropertiesWithoutUndo();
-                EditorUtility.SetDirty(hud);
-            }
+            EnsureSingleComponent<DemoBackButton>(hudObject);
 
             EditorUtility.SetDirty(hudObject);
+        }
+
+        private static T EnsureSingleComponent<T>(GameObject gameObject) where T : Component
+        {
+            T[] components = gameObject.GetComponents<T>();
+            if (components.Length == 0)
+            {
+                return gameObject.AddComponent<T>();
+            }
+
+            T keep = components[0];
+            for (int i = 1; i < components.Length; i++)
+            {
+                UnityEngine.Object.DestroyImmediate(components[i]);
+            }
+
+            return keep;
         }
 
         private static void CreateOrUpdateSubSceneReference(Scene mainScene)

@@ -279,6 +279,8 @@ GameObject:
   - component: {fileID: 935386813}
   - component: {fileID: 935386812}
   - component: {fileID: 935386811}
+  - component: {fileID: 935386818}
+  - component: {fileID: 935386815}
   m_Layer: 0
   m_Name: Demo04 Runtime UI
   m_TagString: Untagged
@@ -339,6 +341,39 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &935386815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 935386810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d4789cc8a548294092fa7a63a68ffd8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &935386818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 935386810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0ad485f377ff324195b7eb48bc13bcc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  demoName: Tower Defense
+  techDescription: 'ECS gameplay loop
+
+    Wave spawning + Tower targeting
+
+    Projectile
+    + Damage + Cleanup'
+  controlsHint: 'R: restart; watch waves, base HP, enemy health bars, and tower ranges'
+  showEntityCount: 1
 --- !u!1 &1811340801
 GameObject:
   m_ObjectHideFlags: 0

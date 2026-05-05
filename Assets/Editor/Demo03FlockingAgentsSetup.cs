@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using DOTSDemo.Shared;
 using Unity.Scenes;
 using Unity.Scenes.Editor;
 using UnityDotsDemo.Demo03;
@@ -45,7 +46,7 @@ namespace UnityDotsDemo.EditorTools
 
         private static void AutoCreateOnce()
         {
-            if (IsImportWorker())
+            if (IsAutomatedRun() || IsImportWorker())
             {
                 return;
             }
@@ -123,12 +124,19 @@ namespace UnityDotsDemo.EditorTools
                    commandLine.IndexOf("-assetImportWorker", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
+        private static bool IsAutomatedRun()
+        {
+            return Application.isBatchMode ||
+                   Environment.CommandLine.IndexOf("-runTests", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         private static bool DemoSceneIsCurrent()
         {
             return File.Exists(MainScenePath) &&
                    File.Exists(SubScenePath) &&
                    SceneFileContains(MainScenePath, "Demo03_FlockingAgents_SubScene") &&
-                   SceneFileContains(MainScenePath, "Demo03 Boid Mode Switcher");
+                   SceneFileContains(MainScenePath, "Demo03 Boid Mode Switcher") &&
+                   SceneFileContains(MainScenePath, "Demo03 HUD");
         }
 
         private static bool SceneFileContains(string path, string value)
@@ -352,11 +360,7 @@ namespace UnityDotsDemo.EditorTools
                 SceneManager.MoveGameObjectToScene(spawner, subScene);
             }
 
-            BoidSpawnerAuthoring authoring = spawner.GetComponent<BoidSpawnerAuthoring>();
-            if (authoring == null)
-            {
-                authoring = spawner.AddComponent<BoidSpawnerAuthoring>();
-            }
+            BoidSpawnerAuthoring authoring = EnsureSingleComponent<BoidSpawnerAuthoring>(spawner);
 
             authoring.BoidPrefab = boidPrefab;
             authoring.Count = 500;
@@ -485,12 +489,48 @@ namespace UnityDotsDemo.EditorTools
                 SceneManager.MoveGameObjectToScene(switcherObject, mainScene);
             }
 
-            if (switcherObject.GetComponent<BoidModeSwitcher>() == null)
-            {
-                switcherObject.AddComponent<BoidModeSwitcher>();
-            }
+            EnsureSingleComponent<BoidModeSwitcher>(switcherObject);
 
             EditorUtility.SetDirty(switcherObject);
+
+            GameObject hudObject = FindRootObject(mainScene, "Demo03 HUD");
+            if (hudObject == null)
+            {
+                hudObject = new GameObject("Demo03 HUD");
+                SceneManager.MoveGameObjectToScene(hudObject, mainScene);
+            }
+
+            DemoHUD hud = EnsureSingleComponent<DemoHUD>(hudObject);
+
+            SerializedObject serializedHud = new SerializedObject(hud);
+            serializedHud.FindProperty("demoName").stringValue = "Flocking Agents";
+            serializedHud.FindProperty("techDescription").stringValue =
+                "Boids simulation\nSeparation + Alignment + Cohesion\nBasic vs SpatialHash modes";
+            serializedHud.FindProperty("controlsHint").stringValue =
+                "M: switch mode; [ / ]: change spatial hash cell size";
+            serializedHud.ApplyModifiedPropertiesWithoutUndo();
+
+            EnsureSingleComponent<DemoBackButton>(hudObject);
+
+            EditorUtility.SetDirty(hud);
+            EditorUtility.SetDirty(hudObject);
+        }
+
+        private static T EnsureSingleComponent<T>(GameObject gameObject) where T : Component
+        {
+            T[] components = gameObject.GetComponents<T>();
+            if (components.Length == 0)
+            {
+                return gameObject.AddComponent<T>();
+            }
+
+            T keep = components[0];
+            for (int i = 1; i < components.Length; i++)
+            {
+                UnityEngine.Object.DestroyImmediate(components[i]);
+            }
+
+            return keep;
         }
 
         private static void CreateOrUpdateSubSceneReference(Scene mainScene)

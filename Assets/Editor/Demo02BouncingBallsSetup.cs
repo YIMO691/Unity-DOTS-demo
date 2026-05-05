@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using DOTSDemo.Shared;
 using Unity.Scenes;
 using Unity.Scenes.Editor;
 using UnityDotsDemo.Demo02;
@@ -26,8 +27,8 @@ namespace UnityDotsDemo.EditorTools
         private const string MainScenePath = "Assets/Scenes/Demo02_BouncingBalls.unity";
         private const string SubScenePath = "Assets/Scenes/Demo02_BouncingBalls/Demo02_BouncingBalls_SubScene.unity";
         private const string MarkerPath = DemoAssetRoot + "/.demo02_setup_complete";
-        private const float WallCenterY = 9.75f;
-        private const float WallHeight = 20.5f;
+        private const float WallCenterY = 4.75f;
+        private const float WallHeight = 9.5f;
 
         static Demo02BouncingBallsSetup()
         {
@@ -40,9 +41,14 @@ namespace UnityDotsDemo.EditorTools
             SetupDemo(force: true);
         }
 
+        public static void RepairDemo02()
+        {
+            SetupDemo(force: false);
+        }
+
         private static void AutoCreateOnce()
         {
-            if (IsImportWorker())
+            if (IsAutomatedRun() || IsImportWorker())
             {
                 return;
             }
@@ -60,7 +66,7 @@ namespace UnityDotsDemo.EditorTools
                 return;
             }
 
-            if (File.Exists(MarkerPath) && DemoScenesExist())
+            if (File.Exists(MarkerPath) && DemoSceneIsCurrent())
             {
                 EnsureUrpAsset();
                 AssetDatabase.SaveAssets();
@@ -120,9 +126,27 @@ namespace UnityDotsDemo.EditorTools
                    commandLine.IndexOf("-assetImportWorker", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
-        private static bool DemoScenesExist()
+        private static bool IsAutomatedRun()
         {
-            return File.Exists(MainScenePath) && File.Exists(SubScenePath);
+            return Application.isBatchMode ||
+                   Environment.CommandLine.IndexOf("-runTests", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool DemoSceneIsCurrent()
+        {
+            return File.Exists(MainScenePath) &&
+                   File.Exists(SubScenePath) &&
+                   SceneFileContains(MainScenePath, "Demo02_BouncingBalls_SubScene") &&
+                   SceneFileContains(MainScenePath, "Demo02 HUD") &&
+                   SceneFileContains(SubScenePath, "Back Wall") &&
+                   SceneFileContains(SubScenePath, "SpawnCenter: {x: 0, y: 5, z: 0}") &&
+                   SceneFileContains(SubScenePath, "SpawnSize: {x: 18, y: 7, z: 18}") &&
+                   SceneFileContains(SubScenePath, "Size: {x: 22, y: 9.5, z: 1}");
+        }
+
+        private static bool SceneFileContains(string path, string value)
+        {
+            return File.Exists(path) && File.ReadAllText(path).Contains(value);
         }
 
         private static void EnsureFolders()
@@ -353,16 +377,12 @@ namespace UnityDotsDemo.EditorTools
                 SceneManager.MoveGameObjectToScene(spawner, subScene);
             }
 
-            BallSpawnerAuthoring authoring = spawner.GetComponent<BallSpawnerAuthoring>();
-            if (authoring == null)
-            {
-                authoring = spawner.AddComponent<BallSpawnerAuthoring>();
-            }
+            BallSpawnerAuthoring authoring = EnsureSingleComponent<BallSpawnerAuthoring>(spawner);
 
             authoring.BallPrefab = ballPrefab;
             authoring.Count = 200;
-            authoring.SpawnCenter = new Vector3(0f, 12f, 0f);
-            authoring.SpawnSize = new Vector3(18f, 8f, 18f);
+            authoring.SpawnCenter = new Vector3(0f, 5f, 0f);
+            authoring.SpawnSize = new Vector3(18f, 7f, 18f);
             authoring.ResetY = -6f;
             authoring.RandomSeed = 777;
 
@@ -524,6 +544,45 @@ namespace UnityDotsDemo.EditorTools
             light.type = LightType.Directional;
             light.intensity = 1.35f;
             light.transform.rotation = Quaternion.Euler(50f, -35f, 0f);
+
+            GameObject hudObject = FindRootObject(mainScene, "Demo02 HUD");
+            if (hudObject == null)
+            {
+                hudObject = new GameObject("Demo02 HUD");
+                SceneManager.MoveGameObjectToScene(hudObject, mainScene);
+            }
+
+            DemoHUD hud = EnsureSingleComponent<DemoHUD>(hudObject);
+
+            SerializedObject serializedHud = new SerializedObject(hud);
+            serializedHud.FindProperty("demoName").stringValue = "Bouncing Balls";
+            serializedHud.FindProperty("techDescription").stringValue =
+                "Unity Physics integration\nPhysicsCollider + PhysicsVelocity\nStatic collider arena";
+            serializedHud.FindProperty("controlsHint").stringValue =
+                "Reset volume below Y=-6; balls bounce inside the arena";
+            serializedHud.ApplyModifiedPropertiesWithoutUndo();
+
+            EnsureSingleComponent<DemoBackButton>(hudObject);
+
+            EditorUtility.SetDirty(hud);
+            EditorUtility.SetDirty(hudObject);
+        }
+
+        private static T EnsureSingleComponent<T>(GameObject gameObject) where T : Component
+        {
+            T[] components = gameObject.GetComponents<T>();
+            if (components.Length == 0)
+            {
+                return gameObject.AddComponent<T>();
+            }
+
+            T keep = components[0];
+            for (int i = 1; i < components.Length; i++)
+            {
+                UnityEngine.Object.DestroyImmediate(components[i]);
+            }
+
+            return keep;
         }
 
         private static void CreateOrUpdateSubSceneReference(Scene mainScene)

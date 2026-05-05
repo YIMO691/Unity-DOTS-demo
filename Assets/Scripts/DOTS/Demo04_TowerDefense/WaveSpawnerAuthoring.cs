@@ -98,7 +98,7 @@ namespace UnityDotsDemo.Demo04
                 {
                     waypoints.Add(new Waypoint { Position = new float3(-12f, 0f, -5f) });
                     waypoints.Add(new Waypoint { Position = new float3(-4f, 0f, 5f) });
-                    waypoints.Add(new Waypoint { Position = new float3(5f, 0f, 4f) });
+                    waypoints.Add(new Waypoint { Position = new float3(5f, 0f, 5.5f) });
                     waypoints.Add(new Waypoint { Position = new float3(12f, 0f, -3f) });
                 }
 
@@ -116,9 +116,9 @@ namespace UnityDotsDemo.Demo04
 
                 if (towerPoints.Length == 0)
                 {
-                    towerPoints.Add(new TowerSpawnPoint { Position = new float3(-6f, 0f, 0f) });
-                    towerPoints.Add(new TowerSpawnPoint { Position = new float3(1f, 0f, 1.5f) });
-                    towerPoints.Add(new TowerSpawnPoint { Position = new float3(7f, 0f, 0f) });
+                    towerPoints.Add(new TowerSpawnPoint { Position = new float3(-7f, 0f, 0f) });
+                    towerPoints.Add(new TowerSpawnPoint { Position = new float3(5.5f, 0f, -4.5f) });
+                    towerPoints.Add(new TowerSpawnPoint { Position = new float3(8f, 0f, 0.5f) });
                 }
             }
 

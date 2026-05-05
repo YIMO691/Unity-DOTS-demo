@@ -47,3 +47,7 @@ Desktop.ini
 
 # Package tarballs (optional exports)
 *.unitypackage
+
+# Plugin / transient
+opencode.json
+*playmode*.log

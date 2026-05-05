@@ -41,7 +41,10 @@ namespace UnityDotsDemo.Demo04
 
                 if (waveStateRef.ValueRO.TowersSpawned == 0)
                 {
-                    SpawnTowers(ecb, config, towerPoints);
+                    bool towerPrefabHasLocalToWorld =
+                        config.TowerPrefab != Entity.Null &&
+                        state.EntityManager.HasComponent<LocalToWorld>(config.TowerPrefab);
+                    SpawnTowers(ecb, config, towerPoints, towerPrefabHasLocalToWorld);
                     waveStateRef.ValueRW.TowersSpawned = 1;
                 }
 
@@ -76,11 +79,15 @@ namespace UnityDotsDemo.Demo04
                 }
 
                 GetEnemyStats(wave, waveStateRef.ValueRO.SpawnedInWave, out float enemyHealth, out float enemySpeed);
+                bool enemyPrefabHasLocalToWorld =
+                    state.EntityManager.HasComponent<LocalToWorld>(config.EnemyPrefab);
                 Entity enemy = ecb.Instantiate(config.EnemyPrefab);
-                ecb.SetComponent(enemy, LocalTransform.FromPositionRotationScale(
+                LocalTransform enemyTransform = LocalTransform.FromPositionRotationScale(
                     waypoints[0].Position,
                     quaternion.identity,
-                    1f));
+                    1f);
+                ecb.SetComponent(enemy, enemyTransform);
+                SetOrAddLocalToWorld(ecb, enemy, enemyPrefabHasLocalToWorld, enemyTransform);
                 ecb.AddComponent<EnemyTag>(enemy);
                 ecb.AddComponent(enemy, new Health { Value = enemyHealth });
                 ecb.AddComponent(enemy, new EnemyMaxHealth { Value = enemyHealth });
@@ -152,7 +159,8 @@ namespace UnityDotsDemo.Demo04
         private static void SpawnTowers(
             EntityCommandBuffer ecb,
             WaveSpawnerConfig config,
-            DynamicBuffer<TowerSpawnPoint> towerPoints)
+            DynamicBuffer<TowerSpawnPoint> towerPoints,
+            bool towerPrefabHasLocalToWorld)
         {
             if (config.TowerPrefab == Entity.Null || config.ProjectilePrefab == Entity.Null)
             {
@@ -162,10 +170,12 @@ namespace UnityDotsDemo.Demo04
             for (int i = 0; i < towerPoints.Length; i++)
             {
                 Entity tower = ecb.Instantiate(config.TowerPrefab);
-                ecb.SetComponent(tower, LocalTransform.FromPositionRotationScale(
+                LocalTransform towerTransform = LocalTransform.FromPositionRotationScale(
                     towerPoints[i].Position,
                     quaternion.identity,
-                    1f));
+                    1f);
+                ecb.SetComponent(tower, towerTransform);
+                SetOrAddLocalToWorld(ecb, tower, towerPrefabHasLocalToWorld, towerTransform);
                 ecb.AddComponent<TowerTag>(tower);
                 ecb.AddComponent(tower, new TowerAttack
                 {
@@ -178,6 +188,30 @@ namespace UnityDotsDemo.Demo04
                     ProjectileLifetime = config.ProjectileLifetime,
                     ProjectileHitRadius = config.ProjectileHitRadius
                 });
+            }
+        }
+
+        private static void SetOrAddLocalToWorld(
+            EntityCommandBuffer ecb,
+            Entity entity,
+            bool hasLocalToWorld,
+            LocalTransform transform)
+        {
+            LocalToWorld localToWorld = new LocalToWorld
+            {
+                Value = float4x4.TRS(
+                    transform.Position,
+                    transform.Rotation,
+                    new float3(transform.Scale))
+            };
+
+            if (hasLocalToWorld)
+            {
+                ecb.SetComponent(entity, localToWorld);
+            }
+            else
+            {
+                ecb.AddComponent(entity, localToWorld);
             }
         }
     }
