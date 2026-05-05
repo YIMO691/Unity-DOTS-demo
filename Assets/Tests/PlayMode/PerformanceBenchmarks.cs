@@ -53,6 +53,12 @@ namespace UnityDotsDemo.Tests.PlayMode
             yield return MeasureScene("Demo04_TowerDefense", "TowerDefense", 0, "FullRun");
         }
 
+        [UnityTest]
+        public IEnumerator Demo05_FlowField_Default()
+        {
+            yield return MeasureScene("Demo05_Pathfinding", "FlowField", 200, "Default");
+        }
+
         private static IEnumerator MeasureScene(
             string sceneName, string demo, int entityCount, string variant)
         {

@@ -3,6 +3,8 @@
 High-performance Unity DOTS/ECS demonstrations featuring Jobs, Burst,
 Unity Physics, and Entities Graphics.
 
+[![Tests](https://github.com/YIMO691/Unity-DOTS-demo/actions/workflows/test.yml/badge.svg)](https://github.com/YIMO691/Unity-DOTS-demo/actions/workflows/test.yml)
+
 Unity 2022.3 LTS · Entities 1.3.14 · URP 14.0.12
 
 ## Demos

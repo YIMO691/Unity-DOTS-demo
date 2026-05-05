@@ -97,18 +97,18 @@ namespace UnityDotsDemo.Demo05
             }
         }
 
-        private static int2 WorldToCell(FlowFieldGrid grid, float3 worldPos)
+        public static int2 WorldToCell(FlowFieldGrid grid, float3 worldPos)
         {
             return new int2(
                 (int)math.floor((worldPos.x - grid.WorldOrigin.x) / grid.CellSize),
                 (int)math.floor((worldPos.z - grid.WorldOrigin.z) / grid.CellSize));
         }
 
-        private static int CellToIndex(int2 cell, int width) => cell.y * width + cell.x;
+        public static int CellToIndex(int2 cell, int width) => cell.y * width + cell.x;
 
-        private static int2 IndexToCell(int index, int width) => new int2(index % width, index / width);
+        public static int2 IndexToCell(int index, int width) => new int2(index % width, index / width);
 
-        private static float2 CellCenterToWorld(FlowFieldGrid grid, int2 cell)
+        public static float2 CellCenterToWorld(FlowFieldGrid grid, int2 cell)
         {
             return new float2(
                 grid.WorldOrigin.x + (cell.x + 0.5f) * grid.CellSize,
