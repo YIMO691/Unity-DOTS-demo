@@ -140,11 +140,11 @@ Assets/
 
 ### CI
 
-Push 和 PR 触发器已启用。`check-license` 门控在没有 Unity License 时自动跳过（绿色通过而非红色失败）。激活步骤：
+手动触发：**Actions 标签 → Unity Tests → Run workflow**。
+需要在 repo 设置中配置 Unity License secrets。
 
-1. 复制你的 Unity 许可证：`cat $env:PROGRAMDATA\Unity\Unity_lic.ulf`
-2. 在 **Settings > Secrets and variables > Actions** 中添加 `UNITY_LICENSE` secret
-3. 每次 push 自动运行 CI
+**个人许可证**（免费）：设置 `UNITY_EMAIL` + `UNITY_PASSWORD` + `UNITY_SERIAL`
+**Pro/Plus 许可证**：设置 `UNITY_LICENSE`（`Unity_lic.ulf` 文件内容）
 
 [GameCI 许可证配置文档 →](https://game.ci/docs/github/activation)
 

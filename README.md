@@ -143,12 +143,11 @@ Or use **Window > General > Test Runner** in the Unity Editor.
 
 ### CI
 
-Push and PR triggers are enabled. A `check-license` gate skips tests if no Unity license
-is configured (green, not red). To activate:
+Manual dispatch via **Actions tab → Unity Tests → Run workflow**.
+Requires Unity license secrets configured in repo settings.
 
-1. Copy your Unity license: `cat $env:PROGRAMDATA\Unity\Unity_lic.ulf`
-2. Add as `UNITY_LICENSE` secret at **Settings > Secrets and variables > Actions**
-3. CI runs automatically on every push
+**Personal license** (free): set `UNITY_EMAIL` + `UNITY_PASSWORD` + `UNITY_SERIAL`
+**Pro/Plus license**: set `UNITY_LICENSE` (content of `Unity_lic.ulf`)
 
 [GameCI license setup docs →](https://game.ci/docs/github/activation)
 

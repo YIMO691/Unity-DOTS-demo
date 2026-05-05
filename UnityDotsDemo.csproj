@@ -83,6 +83,7 @@
     <Compile Include="Assets\Scripts\DOTS\Demo03_FlockingAgents\BoidBoundarySystem.cs" />
     <Compile Include="Assets\Scripts\DOTS\Demo04_TowerDefense\TowerSpawnSystem.cs" />
     <Compile Include="Assets\Scripts\Shared\DemoHubUI.cs" />
+    <Compile Include="Assets\Scripts\DOTS\Demo05_Pathfinding\PathTargetController.cs" />
     <Compile Include="Assets\Scripts\DOTS\Demo04_TowerDefense\ProjectileMovementSystem.cs" />
     <Compile Include="Assets\Scripts\DOTS\Demo04_TowerDefense\BaseHealthComponent.cs" />
     <Compile Include="Assets\Scripts\DOTS\Demo03_FlockingAgents\BoidComponents.cs" />

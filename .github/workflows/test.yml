@@ -1,32 +1,10 @@
 name: Unity Tests
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
-  check-license:
-    runs-on: ubuntu-latest
-    outputs:
-      has_license: ${{ steps.check.outputs.has_license }}
-    steps:
-      - id: check
-        run: |
-          if [ -n "${{ secrets.UNITY_LICENSE }}" ] || [ -n "${{ secrets.UNITY_SERIAL }}" ]; then
-            echo "has_license=true" >> "$GITHUB_OUTPUT"
-            echo "Unity license found — tests will run."
-          else
-            echo "has_license=false" >> "$GITHUB_OUTPUT"
-            echo "No Unity license configured — tests skipped."
-            echo "Set UNITY_LICENSE or UNITY_SERIAL in repo secrets to enable."
-          fi
-
   editmode:
-    needs: check-license
-    if: needs.check-license.outputs.has_license == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,8 +19,6 @@ jobs:
           testMode: editmode
 
   playmode:
-    needs: check-license
-    if: needs.check-license.outputs.has_license == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
