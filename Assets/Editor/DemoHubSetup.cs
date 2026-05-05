@@ -20,7 +20,8 @@ namespace UnityDotsDemo.EditorTools
             "Assets/Scenes/Demo01_MovingCubes.unity",
             "Assets/Scenes/Demo02_BouncingBalls.unity",
             "Assets/Scenes/Demo03_FlockingAgents.unity",
-            "Assets/Scenes/Demo04_TowerDefense.unity"
+            "Assets/Scenes/Demo04_TowerDefense.unity",
+            "Assets/Scenes/Demo05_Pathfinding.unity"
         };
 
         static DemoHubSetup()
