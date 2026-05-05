@@ -5,8 +5,6 @@
 High-performance Unity DOTS/ECS demonstrations — from basic entity movement to
 full gameplay loops. Built for learning, interviews, and performance benchmarking.
 
-[![Tests](https://github.com/YIMO691/Unity-DOTS-demo/actions/workflows/test.yml/badge.svg)](https://github.com/YIMO691/Unity-DOTS-demo/actions/workflows/test.yml)
-
 Unity 2022.3 LTS · Entities 1.3.14 · Unity Physics 1.3.14 · Entities Graphics 1.3.2 · URP 14.0.12
 
 ## Demos
@@ -140,16 +138,6 @@ Assets/
 ```
 
 Or use **Window > General > Test Runner** in the Unity Editor.
-
-### CI
-
-Manual dispatch via **Actions tab → Unity Tests → Run workflow**.
-Requires Unity license secrets configured in repo settings.
-
-**Personal license** (free): set `UNITY_EMAIL` + `UNITY_PASSWORD` + `UNITY_SERIAL`
-**Pro/Plus license**: set `UNITY_LICENSE` (content of `Unity_lic.ulf`)
-
-[GameCI license setup docs →](https://game.ci/docs/github/activation)
 
 ## Contributing
 

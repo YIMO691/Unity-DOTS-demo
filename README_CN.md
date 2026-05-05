@@ -5,8 +5,6 @@
 高性能 Unity DOTS/ECS 演示集合 — 从基础实体移动到完整玩法循环。
 适用于学习、面试展示和性能基准测试。
 
-[![Tests](https://github.com/YIMO691/Unity-DOTS-demo/actions/workflows/test.yml/badge.svg)](https://github.com/YIMO691/Unity-DOTS-demo/actions/workflows/test.yml)
-
 Unity 2022.3 LTS · Entities 1.3.14 · Unity Physics 1.3.14 · Entities Graphics 1.3.2 · URP 14.0.12
 
 ## Demo 列表
@@ -137,16 +135,6 @@ Assets/
 ```
 
 或在 Unity Editor 中使用 **Window > General > Test Runner**。
-
-### CI
-
-手动触发：**Actions 标签 → Unity Tests → Run workflow**。
-需要在 repo 设置中配置 Unity License secrets。
-
-**个人许可证**（免费）：设置 `UNITY_EMAIL` + `UNITY_PASSWORD` + `UNITY_SERIAL`
-**Pro/Plus 许可证**：设置 `UNITY_LICENSE`（`Unity_lic.ulf` 文件内容）
-
-[GameCI 许可证配置文档 →](https://game.ci/docs/github/activation)
 
 ## 参与贡献
 
