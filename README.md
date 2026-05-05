@@ -1,5 +1,7 @@
 # Unity DOTS Demo Hub
 
+[English](README.md) · [中文](README_CN.md)
+
 High-performance Unity DOTS/ECS demonstrations — from basic entity movement to
 full gameplay loops. Built for learning, interviews, and performance benchmarking.
 
