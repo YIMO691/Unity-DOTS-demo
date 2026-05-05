@@ -1,199 +1,173 @@
 # Unity DOTS Demo Hub
 
-High-performance Unity DOTS/ECS demonstrations featuring Jobs, Burst,
-Unity Physics, and Entities Graphics.
+High-performance Unity DOTS/ECS demonstrations — from basic entity movement to
+full gameplay loops. Built for learning, interviews, and performance benchmarking.
 
 [![Tests](https://github.com/YIMO691/Unity-DOTS-demo/actions/workflows/test.yml/badge.svg)](https://github.com/YIMO691/Unity-DOTS-demo/actions/workflows/test.yml)
 
-Unity 2022.3 LTS · Entities 1.3.14 · URP 14.0.12
+Unity 2022.3 LTS · Entities 1.3.14 · Unity Physics 1.3.14 · Entities Graphics 1.3.2 · URP 14.0.12
 
 ## Demos
 
-| # | Demo | Scene Path | Core DOTS Concepts | Entity Scale | Status |
-|---|------|------------|-------------------|--------------|--------|
-| 01 | Moving Cubes | `Assets/Scenes/Demo01_MovingCubes/` | `IJobEntity`, Burst, ECB, boundary wrap | 1k-50k | Done |
-| 02 | Bouncing Balls | `Assets/Scenes/Demo02_BouncingBalls/` | Unity Physics, `PhysicsVelocity`, collider baking, reset loop | 100-1k | Done |
-| 03 | Flocking Agents | `Assets/Scenes/Demo03_FlockingAgents/` | Boids, Basic/SpatialHash modes, separation/alignment/cohesion | 500-10k | Done |
-| 04 | Tower Defense | `Assets/Scenes/Demo04_TowerDefense/` | ECS gameplay loop, waves, targeting, projectiles, win/lose state | 100-500 | Done |
-| 05 | Flow Field | `Assets/Scenes/Demo05_Pathfinding/` | BFS flow field, parallel agent movement, grid-based pathfinding | 100-500 | Done |
+| # | Demo | Core Concepts | Scale | Key Pattern |
+|---|------|--------------|-------|-------------|
+| 01 | **Moving Cubes** | IJobEntity, Burst, ECB, boundary wrap | 1k–50k | Parallel entity update |
+| 02 | **Bouncing Balls** | Unity Physics, PhysicsVelocity, collider baking | 100–1k | Physics + reset loop |
+| 03 | **Flocking Agents** | Boids, Basic/SpatialHash modes, neighbor sampling | 500–10k | Parallel flocking |
+| 04 | **Tower Defense** | Wave spawning, targeting, projectiles, win/loss | 100–500 | Gameplay loop + entity pool |
+| 05 | **Flow Field** | BFS gradient, BufferLookup, Burst IJobEntity | 100–1k | Grid pathfinding |
+
+All scenes are in `Assets/Scenes/`. Each has an auto-setup script under `Assets/Editor/`.
 
 ## Quick Start
 
-1. Install Unity `2022.3.62f3c1` or a compatible `2022.3 LTS` editor.
-2. Clone: `git clone https://github.com/YIMO691/Unity-DOTS-demo.git`
-3. Open the project root folder with Unity Hub.
-4. Open `Assets/Scenes/DemoHub.unity` for the main menu, or any demo scene directly.
-5. Press Play.
+1. Install **Unity 2022.3.62f3c1** (or compatible 2022.3 LTS).
+2. `git clone https://github.com/YIMO691/Unity-DOTS-demo.git`
+3. Open the project root folder with Unity Hub. Wait for Package Manager.
+4. Auto-setup scripts run on first open — scenes, materials, and prefabs are created automatically.
+5. Open `Assets/Scenes/DemoHub.unity` for the main menu, or any demo scene directly.
+6. Press **Play**.
 
-Each demo depends on SubScene baking. If you duplicate or create scenes, keep the authoring GameObjects inside the related SubScene and wait for baking to finish before entering Play mode.
+SubScene baking is mandatory — authoring GameObjects live inside SubScenes.
+Wait for baking to finish before entering Play Mode.
 
-## Project Structure
+## Architecture
 
-```text
-Assets/
-|-- DOTS_DemoAssets/
-|   |-- Demo01/
-|   |-- Demo02/
-|   |-- Demo03/
-|   |-- Demo04/
-|   `-- Demo05/
-|-- Editor/
-|   |-- DemoHubSetup.cs
-|   |-- Demo01MovingCubesSetup.cs
-|   |-- Demo02BouncingBallsSetup.cs
-|   |-- Demo03FlockingAgentsSetup.cs
-|   `-- Demo04TowerDefenseSetup.cs
-|-- Scenes/
-|   |-- DemoHub.unity
-|   |-- Demo01_MovingCubes/
-|   |-- Demo02_BouncingBalls/
-|   |-- Demo03_FlockingAgents/
-|   |-- Demo04_TowerDefense/
-|   |-- Demo05_Pathfinding/
-|   |-- Demo01_MovingCubes.unity
-|   |-- Demo02_BouncingBalls.unity
-|   |-- Demo03_FlockingAgents.unity
-|   `-- Demo04_TowerDefense.unity
-|-- Scripts/
-|   |-- Shared/
-|   |   |-- DemoHUD.cs
-|   |   |-- DemoHubUI.cs
-|   |   `-- DemoBackButton.cs
-|   `-- DOTS/
-|       |-- Demo01_MovingCubes/
-|       |-- Demo02_BouncingBalls/
-|       |-- Demo03_FlockingAgents/
-|       |-- Demo04_TowerDefense/
-|       |-- Demo05_Pathfinding/
-|       `-- Templates/
-`-- Settings/
+Every demo follows the same pipeline:
+
 ```
+MonoBehaviour Authoring  →  Baker<T>  →  IComponentData  →  ISystem / IJobEntity
+```
+
+Shared infrastructure in `Assets/Scripts/Shared/`:
+
+| File | Purpose |
+|------|---------|
+| `CommonComponents.cs` | Shared `MoveSpeed` and `Velocity` structs |
+| `SpawnerHelper.cs` | Disposable ECB wrapper for one-shot spawners |
+| `GUIStyleHelper.cs` | Factory methods for common GUI styles |
+| `DemoHUD.cs` / `DemoHubUI.cs` / `DemoBackButton.cs` | Runtime UI overlay + menu |
+
+### Demo04 System Pipeline
+
+```
+TowerSpawn → WaveProgression → EnemySpawn → EnemyMovement → TowerTargeting
+    → ProjectileMovement → Damage → Cleanup → BaseHealth → GameState
+```
+
+Entity pooling: enemies pre-spawn and reuse via `PooledEnemy` tag.
+All 10 systems exclude pooled entities with `.WithNone<PooledEnemy>()`.
+
+### Demo05 Flow Field
+
+BFS propagates from target cell outward through a 40×40 grid. Each cell stores
+a direction vector toward the target. 200+ agents read the gradient via
+`BufferLookup<FlowFieldCell>` in a Burst-compiled `IJobEntity` — zero per-agent
+pathfinding cost. Click and drag on the ground to move the target in real time.
+
+## Performance
+
+### Batchmode (Headless, CPU-Only)
+
+| Demo | Entities | Frame Time | GC Alloc |
+|------|----------|------------|----------|
+| Moving Cubes | 1,000 | 1.22 ms | 0 B |
+| Bouncing Balls | 200 | 1.23 ms | 0 B |
+| Flocking (Basic) | 500 | 1.25 ms | 0 B |
+| Flocking (SpatialHash) | 500 | 1.36 ms | 0 B |
+| Tower Defense | 5 waves | 1.44 ms | 0 B |
+
+### Editor Play Mode (with GPU Rendering)
+
+| Demo | Entities | Avg FPS | Frame ms | GC/frame |
+|------|----------|---------|----------|----------|
+| Moving Cubes | 1,009 | 217 | 4.60 | 1.4 KB |
+| Bouncing Balls | 219 | 218 | 4.59 | 1.2 KB |
+| Flocking (Basic) | 515 | 212 | 4.71 | 1.7 KB |
+| Flocking (SpatialHash) | 516 | 208 | 4.81 | 1.4 KB |
+| Tower Defense | 64 peak | 193 | 5.19 | 2.4 KB |
+| Flow Field | 211 | 171 | 5.84 | 0.9 KB |
+
+GC in Play Mode is Editor/rendering overhead — DOTS ECS code itself produces zero allocation.
+Full methodology and high-stress configs in [`Documentation~/Benchmark.md`](Documentation~/Benchmark.md).
 
 ## Tech Stack
 
-- ECS (Entity Component System) - data-oriented architecture
-- C# Job System - multi-threaded parallel processing
-- Burst Compiler - high-performance native code generation
-- Unity Physics - DOTS-native physics simulation
-- Entities Graphics - GPU-instanced rendering
-- SubScene Baking - authoring-to-entity conversion
-- URP - Universal Render Pipeline
+| Technology | Role |
+|------------|------|
+| **ECS** (Entities 1.3.14) | Data-oriented architecture, chunk-based component storage |
+| **C# Job System** | Multi-threaded parallel processing |
+| **Burst Compiler** | Native code generation for Jobs |
+| **Unity Physics** | DOTS-native collision and dynamics |
+| **Entities Graphics** | GPU-instanced rendering for ECS entities |
+| **SubScene Baking** | Authoring-to-entity conversion at edit time |
+| **URP** | Universal Render Pipeline, Forward+ rendering |
 
-## Why DOTS?
+## Project Structure
 
-DOTS eliminates GC allocation and leverages Burst + Job System for cache-friendly
-parallel execution. Batchmode (headless) measurements on this hardware:
-
-| Scenario | Frame Time | GC Alloc | Notes |
-|----------|-----------|----------|-------|
-| 1,000 moving cubes | 1.22 ms | 0 B | IJobEntity + Burst |
-| 200 physics balls | 1.23 ms | 0 B | Unity Physics |
-| 500 flocking agents | 1.25 ms | 0 B | Boids + Burst |
-| Tower defense (5 waves) | 1.44 ms | 0 B | Full ECS gameplay loop |
-
-Full benchmark tables at `Documentation~/Benchmark.md`.
-
-## Performance Benchmark
-
-Measured in batchmode (headless) on Windows 10 Pro / Unity 2022.3.62f3c1.
-Real-Editor FPS will be lower due to GPU rendering. See `Documentation~/Benchmark.md` for methodology.
-
-### Demo01 Moving Cubes
-
-| Entity Count | Avg FPS | Frame Time | GC Alloc |
-|--------------|---------|------------|----------|
-| 1,000 | 819 | 1.22 ms | 0 B |
-
-### Demo02 Bouncing Balls
-
-| Ball Count | Avg FPS | Frame Time | GC Alloc |
-|------------|---------|------------|----------|
-| 200 | 815 | 1.23 ms | 0 B |
-
-### Demo03 Flocking Agents
-
-| Agent Count | Mode | Avg FPS | Frame Time | GC Alloc |
-|-------------|------|---------|------------|----------|
-| 500 | Basic | 802 | 1.25 ms | 0 B |
-| 500 | SpatialHash | 735 | 1.36 ms | 0 B |
-
-### Demo04 Tower Defense
-
-| Scenario | Avg FPS | Frame Time | Enemy Peak | GC Alloc |
-|----------|---------|------------|------------|----------|
-| Default run | 696 | 1.44 ms | ~25 | 0 B |
+```
+Assets/
+├── DOTS_DemoAssets/Demo01–05/    Prefabs, materials, setup markers
+├── Editor/
+│   ├── DemoHubSetup.cs            Hub scene + back button injection
+│   ├── Demo01MovingCubesSetup.cs  Auto-create scenes & assets
+│   ├── Demo02BouncingBallsSetup.cs
+│   ├── Demo03FlockingAgentsSetup.cs
+│   ├── Demo04TowerDefenseSetup.cs
+│   └── Demo05PathfindingSetup.cs
+├── Scenes/Demo01–05 + DemoHub     Main scenes & SubScenes
+├── Scripts/
+│   ├── Shared/                    CommonComponents, SpawnerHelper, GUIStyleHelper, UI
+│   └── DOTS/Demo01–05 + Templates ECS systems, components, authoring
+├── Tests/
+│   ├── EditMode/                  10 unit tests (components, configs, algorithms)
+│   └── PlayMode/                  7 smoke tests + 6 benchmark tests
+└── Settings/                      URP pipeline assets
+```
 
 ## Testing
 
-### Unity Editor
+**17 tests** — all passing.
 
-1. Open `Window > General > Test Runner`.
-2. Select `EditMode`.
-3. Run all EditMode tests.
-4. Select `PlayMode`.
-5. Run all PlayMode smoke tests.
+```powershell
+# EditMode (headless)
+& "<Unity>/Editor/Unity.exe" -batchmode -projectPath . -runTests -testPlatform EditMode -quit
 
-PlayMode smoke tests load each demo scene and run for 300 frames. SubScene baking must be complete before running them.
+# PlayMode (headless)
+& "<Unity>/Editor/Unity.exe" -batchmode -projectPath . -runTests -testPlatform PlayMode -quit
+```
 
-### GitHub Actions
+Or use **Window > General > Test Runner** in the Unity Editor.
 
-The workflow at `.github/workflows/test.yml` uses GameCI. CI is configured as
-**manual dispatch** by default (no failing CI badge on push).
+### CI
 
-To enable automated CI on push/PR:
-1. Set `UNITY_LICENSE` (or `UNITY_EMAIL` + `UNITY_PASSWORD` + `UNITY_SERIAL`) in Settings > Secrets and variables > Actions.
-2. Uncomment the `push` and `pull_request` triggers in `.github/workflows/test.yml`.
-3. See [GameCI docs](https://game.ci/docs/github/activation) for license setup.
+Push and PR triggers are enabled. A `check-license` gate skips tests if no Unity license
+is configured (green, not red). To activate:
 
-## Roadmap
+1. Copy your Unity license: `cat $env:PROGRAMDATA\Unity\Unity_lic.ulf`
+2. Add as `UNITY_LICENSE` secret at **Settings > Secrets and variables > Actions**
+3. CI runs automatically on every push
 
-- [x] Demo01: Entity movement with Burst
-- [x] Demo02: Physics simulation
-- [x] Demo03: Boids flocking (basic)
-- [x] Demo03: Spatial hash optimization mode
-- [x] Demo04: Tower defense gameplay loop (win/lose, UI, enemy wave variants)
-- [x] Demo04: Entity pooling (pre-spawn + reuse)
-- [x] Demo05: Flow field pathfinding (BFS + Burst parallel agents)
-- [x] Performance benchmarks with Profiler data (batchmode, headless)
-- [x] CI/CD with GitHub Actions
-- [x] Demo Hub main menu scene
-- [x] Code refactoring: shared components, SpawnerHelper, GUIStyleHelper
-- [x] System split: WaveSpawner → 3 single-responsibility systems
-
-## Preview
-
-> Screenshots and GIFs of each demo. Capture from Unity Editor Play Mode and place in `Documentation~/Images/`.
-
-| Demo01 | Demo02 | Demo03 |
-|:---:|:---:|:---:|
-| ![Demo01](Documentation~/Images/demo01_preview.png) | ![Demo02](Documentation~/Images/demo02_preview.png) | ![Demo03](Documentation~/Images/demo03_preview.png) |
-
-| Demo04 | Demo05 | Demo Hub |
-|:---:|:---:|:---:|
-| ![Demo04](Documentation~/Images/demo04_preview.png) | ![Demo05](Documentation~/Images/demo05_preview.png) | ![Hub](Documentation~/Images/demohub_preview.png) |
-
-## Documentation
-
-- `Documentation~/Benchmark.md` - benchmark recording template and results.
-- `Documentation~/Interview_Guide.md` - interview explanation guide.
-- `Documentation~/LEARNING_CHECKLIST.md` - hands-on learning exercises.
-- `Documentation~/DOTS_Performance_Optimization.md` - DOTS performance theory (Chinese).
+[GameCI license setup docs →](https://game.ci/docs/github/activation)
 
 ## Contributing
 
-Follow DOTS-first patterns consistent with the existing architecture:
-- Prefer `ISystem` over `SystemBase`, use `IJobEntity` for parallel iteration.
-- Add `[BurstCompile]` where the code path is Burst-compatible.
-- Use `EntityCommandBuffer` for structural changes and `LocalTransform` in ECS logic.
-- Keep components small and focused, convert authoring data with `Baker<T>`.
+- Prefer `ISystem` and `IJobEntity`. Use `[BurstCompile]` where the code path allows.
+- Use `EntityCommandBuffer` for structural changes. Use `LocalTransform` (not legacy `Transform`).
+- Keep components small. Convert authoring data with `Baker<T>`.
+- Verify the target demo runs before opening a PR.
 
-Submit a PR:
-1. Create a feature branch from `main`.
-2. Make small, reviewable changes.
-3. Verify the target demo still runs in Unity.
-4. Update documentation when behavior or usage changes.
-5. Open a pull request with a clear summary and validation steps.
+## Documentation
+
+| Document | Content |
+|----------|---------|
+| [`CLAUDE.md`](CLAUDE.md) | AI assistant guidance and architecture reference |
+| [`CHANGELOG.md`](CHANGELOG.md) | Version history |
+| [`Documentation~/Benchmark.md`](Documentation~/Benchmark.md) | Methodology, batchmode + Play Mode results, high-stress guide |
+| [`Documentation~/Interview_Guide.md`](Documentation~/Interview_Guide.md) | Interview talking points |
+| [`Documentation~/LEARNING_CHECKLIST.md`](Documentation~/LEARNING_CHECKLIST.md) | Hands-on learning exercises |
+| [`Documentation~/DOTS_Performance_Optimization.md`](Documentation~/DOTS_Performance_Optimization.md) | DOTS performance theory (中文) |
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
