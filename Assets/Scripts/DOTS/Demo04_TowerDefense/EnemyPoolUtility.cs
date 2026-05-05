@@ -1,3 +1,4 @@
+using DOTSDemo.Shared;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
