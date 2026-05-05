@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0] - 2026-05-05
+
+### Changed
+- Documentation: consolidated 7 root .md files to 3 (README, CLAUDE, CHANGELOG). Moved reference docs to `Documentation~/`.
+- Refactored: extracted shared DOTS components (`MoveSpeed`, `Velocity`) into `Assets/Scripts/Shared/CommonComponents.cs`, eliminating 3 duplicate struct definitions across Demo01/Demo04/Template.
+- Refactored: added `SpawnerHelper` (disposable ECB wrapper) to reduce boilerplate in all spawner systems.
+- Refactored: added `GUIStyleHelper` (shared style factories) to centralize duplicated `EnsureStyles()` pattern across 6 UI files.
+- Template: fixed namespace from `DOTS.Templates.DemoTemplate` to `UnityDotsDemo.Template`, now uses shared components.
+- CI: enabled `push` and `pull_request` triggers for automated test runs.
+
+### Removed
+- Deleted `AGENTS.md` (merged into `CLAUDE.md`).
+- Deleted `CONTRIBUTING.md` (merged into `README.md`).
+
 ## [0.3.0] - 2026-05-04
 
 ### Added

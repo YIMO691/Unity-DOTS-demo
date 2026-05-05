@@ -95,4 +95,4 @@ Place captures in `Documentation~/Images/` using names such as:
 
 ---
 
-*Last updated: 2026-05-04 · Measured in batchmode (headless) on Windows 10 Pro*
+*Last updated: 2026-05-05 · Measured in batchmode (headless) on Windows 10 Pro*
