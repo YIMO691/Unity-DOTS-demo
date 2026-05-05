@@ -158,11 +158,24 @@ To enable automated CI on push/PR:
 - [x] Code refactoring: shared components, SpawnerHelper, GUIStyleHelper
 - [x] System split: WaveSpawner → 3 single-responsibility systems
 
+## Preview
+
+> Screenshots and GIFs of each demo. Capture from Unity Editor Play Mode and place in `Documentation~/Images/`.
+
+| Demo01 | Demo02 | Demo03 |
+|:---:|:---:|:---:|
+| ![Demo01](Documentation~/Images/demo01_preview.png) | ![Demo02](Documentation~/Images/demo02_preview.png) | ![Demo03](Documentation~/Images/demo03_preview.png) |
+
+| Demo04 | Demo05 | Demo Hub |
+|:---:|:---:|:---:|
+| ![Demo04](Documentation~/Images/demo04_preview.png) | ![Demo05](Documentation~/Images/demo05_preview.png) | ![Hub](Documentation~/Images/demohub_preview.png) |
+
 ## Documentation
 
-- `Documentation~/Benchmark.md` - benchmark recording template.
+- `Documentation~/Benchmark.md` - benchmark recording template and results.
 - `Documentation~/Interview_Guide.md` - interview explanation guide.
-- `Documentation~/DemoHub_Plan.md` - future main menu scene plan.
+- `Documentation~/LEARNING_CHECKLIST.md` - hands-on learning exercises.
+- `Documentation~/DOTS_Performance_Optimization.md` - DOTS performance theory (Chinese).
 
 ## Contributing
 
